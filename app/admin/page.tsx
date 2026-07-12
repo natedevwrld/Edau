@@ -116,7 +116,10 @@ export default function AdminDashboard() {
     emailService: 'connected',
     databaseStatus: 'connected',
     paymentGateway: 'active',
-    farmStoryVideoUrl: ''
+    farmStoryVideoUrl: '',
+    heroImageUrl: '',
+    heroImageAlt: 'Edau Farm hero image',
+    galleryImages: ''
   });
   const [savingSettings, setSavingSettings] = useState(false);
 
@@ -149,9 +152,15 @@ export default function AdminDashboard() {
     try {
       const response = await axios.get('/api/site-settings');
       if (response.data.settings) {
+        const galleryImages = response.data.settings.gallery_images;
         setSystemSettings(prev => ({
           ...prev,
-          farmStoryVideoUrl: response.data.settings.farm_story_video_url || ''
+          farmStoryVideoUrl: response.data.settings.farm_story_video_url || '',
+          heroImageUrl: response.data.settings.hero_image_url || '',
+          heroImageAlt: response.data.settings.hero_image_alt || 'Edau Farm hero image',
+          galleryImages: typeof galleryImages === 'string'
+            ? galleryImages
+            : JSON.stringify(galleryImages || [], null, 2)
         }));
       }
     } catch (error) {
@@ -219,13 +228,22 @@ export default function AdminDashboard() {
     try {
       setSavingSettings(true);
       await axios.patch('/api/admin/settings/system', systemSettings);
-      // Save video URL to site settings
-      if (systemSettings.farmStoryVideoUrl) {
-        await axios.post('/api/site-settings', {
-          key: 'farm_story_video_url',
-          value: systemSettings.farmStoryVideoUrl
-        });
-      }
+      await axios.post('/api/site-settings', {
+        key: 'farm_story_video_url',
+        value: systemSettings.farmStoryVideoUrl
+      });
+      await axios.post('/api/site-settings', {
+        key: 'hero_image_url',
+        value: systemSettings.heroImageUrl
+      });
+      await axios.post('/api/site-settings', {
+        key: 'hero_image_alt',
+        value: systemSettings.heroImageAlt
+      });
+      await axios.post('/api/site-settings', {
+        key: 'gallery_images',
+        value: systemSettings.galleryImages
+      });
       toast.success('System settings saved successfully');
     } catch (error) {
       toast.error('Failed to save system settings');
@@ -1151,6 +1169,47 @@ export default function AdminDashboard() {
                       className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     />
                     <p className="text-xs text-gray-500 mt-1">This video will be displayed on the homepage Farm Story section</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Hero Image URL
+                    </label>
+                    <input
+                      type="text"
+                      value={systemSettings.heroImageUrl}
+                      onChange={(e) => updateSystemSetting('heroImageUrl', e.target.value)}
+                      placeholder="https://res.cloudinary.com/.../image.jpg"
+                      className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">This image will be used on the homepage hero area</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Hero Image Alt Text
+                    </label>
+                    <input
+                      type="text"
+                      value={systemSettings.heroImageAlt}
+                      onChange={(e) => updateSystemSetting('heroImageAlt', e.target.value)}
+                      placeholder="Edau Farm hero image"
+                      className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Gallery Images JSON
+                    </label>
+                    <textarea
+                      value={systemSettings.galleryImages}
+                      onChange={(e) => updateSystemSetting('galleryImages', e.target.value)}
+                      placeholder='[{"src":"https://example.com/image.jpg","alt":"Farm image","title":"Farm","description":"A short description"}]'
+                      rows={8}
+                      className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-mono text-sm"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Provide gallery items as a JSON array of objects with src, alt, title, and description fields.</p>
                   </div>
 
                   <div className="flex items-center">

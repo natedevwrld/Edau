@@ -2,12 +2,14 @@ import NewsletterSection from '@/components/NewsletterSection';
 import ProductCard from '@/components/ProductCard';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import FarmStoryVideo from '@/components/FarmStoryVideo';
+import HeroBanner from '@/components/HeroBanner';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import dbConnect from '@/lib/mongodb';
 import Category from '@/lib/models/Category';
 import Product from '@/lib/models/Product';
+import SiteSettings from '@/lib/models/SiteSettings';
 
 export const revalidate = 300;
 
@@ -46,45 +48,86 @@ const features = [
 ];
 
 async function getCategories() {
-  await dbConnect();
-  const categories = await Category.find({ is_active: true })
-    .sort({ display_order: 1 })
-    .limit(6)
-    .lean();
+  try {
+    await dbConnect();
+    const categories = await Category.find({ is_active: true })
+      .sort({ display_order: 1 })
+      .limit(6)
+      .lean();
 
-  return categories || [];
+    return categories || [];
+  } catch {
+    return [];
+  }
 }
 
 async function getFeaturedProducts() {
-  await dbConnect();
-  const products = await Product.find({ is_featured: true, is_in_stock: true })
-    .sort({ created_at: -1 })
-    .limit(8)
-    .lean();
+  try {
+    await dbConnect();
+    const products = await Product.find({ is_featured: true, is_in_stock: true })
+      .sort({ created_at: -1 })
+      .limit(8)
+      .lean();
 
-  return (products || []).map((p: any) => ({
-    id: p.id,
-    name: p.name,
-    price: p.price,
-    compare_at_price: p.compare_at_price,
-    images: p.images || [],
-    category_id: p.category_id,
-    unit_type: p.unit_type,
-    is_organic: p.is_organic,
-    rating_avg: p.rating_avg,
-    rating_count: p.rating_count,
-    quantity: p.quantity,
-    is_in_stock: p.is_in_stock,
-    is_featured: p.is_featured,
-    created_at: p.created_at,
-  }));
+    return (products || []).map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      price: p.price,
+      compare_at_price: p.compare_at_price,
+      images: p.images || [],
+      category_id: p.category_id,
+      unit_type: p.unit_type,
+      is_organic: p.is_organic,
+      rating_avg: p.rating_avg,
+      rating_count: p.rating_count,
+      quantity: p.quantity,
+      is_in_stock: p.is_in_stock,
+      is_featured: p.is_featured,
+      created_at: p.created_at,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+async function getSiteSettings() {
+  try {
+    await dbConnect();
+    const settings = await SiteSettings.find({}).lean();
+
+    return settings.reduce<Record<string, unknown>>((acc, item: any) => {
+    const value = item.value?.trim();
+    if (!value) {
+      acc[item.key] = '';
+      return acc;
+    }
+
+    try {
+      if ((value.startsWith('{') && value.endsWith('}')) || (value.startsWith('[') && value.endsWith(']'))) {
+        acc[item.key] = JSON.parse(value);
+      } else {
+        acc[item.key] = value;
+      }
+    } catch {
+      acc[item.key] = value;
+    }
+
+      return acc;
+    }, {});
+  } catch {
+    return {};
+  }
 }
 
 export default async function Home() {
-  const [categories, products] = await Promise.all([
+  const [categories, products, siteSettings] = await Promise.all([
     getCategories(),
     getFeaturedProducts(),
+    getSiteSettings(),
   ]);
+
+  const heroImageUrl = typeof siteSettings.hero_image_url === 'string' ? siteSettings.hero_image_url : '';
+  const heroImageAlt = typeof siteSettings.hero_image_alt === 'string' ? siteSettings.hero_image_alt : 'Edau Farm hero image';
 
   return (
     <div className="min-h-screen bg-white">
@@ -144,67 +187,9 @@ export default async function Home() {
               </div>
             </div>
 
-            {/* Right: Product Composition with Floating Glass Cards */}
-            <div className="relative h-[500px] lg:h-[600px] hidden lg:block">
-              {/* Main Image */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-3xl overflow-hidden shadow-2xl">
-                <Image
-                  src="https://images.unsplash.com/photo-1587049352846-4a232e259e83?w=800&q=80"
-                  alt="Premium Acacia Honey"
-                  fill
-                  className="object-cover"
-                  priority
-                />
-              </div>
-
-              {/* Floating Glass Cards */}
-              <div className="absolute top-8 left-8 glass rounded-2xl p-4 shadow-lg max-w-[180px]">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
-                    <span className="text-lg">🍯</span>
-                  </div>
-                  <div>
-                    <div className="text-xs text-neutral-500">Featured</div>
-                    <div className="font-medium text-sm">Pure Honey</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="absolute bottom-16 left-4 glass rounded-2xl p-4 shadow-lg max-w-[180px]">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-                    <span className="text-lg">🥭</span>
-                  </div>
-                  <div>
-                    <div className="text-xs text-neutral-500">In Season</div>
-                    <div className="font-medium text-sm">Fresh Fruits</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="absolute top-20 right-4 glass rounded-2xl p-4 shadow-lg max-w-[180px]">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center">
-                    <span className="text-lg">🐑</span>
-                  </div>
-                  <div>
-                    <div className="text-xs text-neutral-500">Available</div>
-                    <div className="font-medium text-sm">Livestock</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="absolute bottom-8 right-12 glass rounded-2xl p-4 shadow-lg max-w-[180px]">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center">
-                    <span className="text-lg">🐔</span>
-                  </div>
-                  <div>
-                    <div className="text-xs text-neutral-500">Premium</div>
-                    <div className="font-medium text-sm">Poultry</div>
-                  </div>
-                </div>
-              </div>
+            {/* Right: Hero showcase */}
+            <div className="w-full lg:block">
+              <HeroBanner className="h-[500px] lg:h-[600px]" />
             </div>
           </div>
         </div>
@@ -241,13 +226,17 @@ export default async function Home() {
       <section className="py-16 lg:py-24 bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            <div className="relative h-[400px] lg:h-[500px] rounded-2xl overflow-hidden shadow-2xl">
-              <Image
-                src="https://images.unsplash.com/photo-1587049352846-4a232e259e83?w=800&q=80"
-                alt="Edau Farm Premium Acacia Honey"
-                fill
-                className="object-cover"
-              />
+            <div className="relative h-[400px] lg:h-[500px] rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-primary-700 via-amber-500 to-emerald-700">
+              {heroImageUrl ? (
+                <Image
+                  src={heroImageUrl}
+                  alt={heroImageAlt}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  loading="lazy"
+                />
+              ) : null}
               <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
             </div>
             <div>

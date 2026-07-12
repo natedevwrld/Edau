@@ -6,7 +6,7 @@ import ProductCard from '@/components/ProductCard';
 import CategoryFilter from '@/components/CategoryFilter';
 import MobileFilter from '@/components/MobileFilter';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { FiTrendingUp, FiDollarSign, FiStar, FiType, FiShuffle, FiPackage } from 'react-icons/fi';
+import { FiFilter, FiPackage, FiSearch, FiShuffle, FiStar } from 'react-icons/fi';
 import axios from 'axios';
 
 function ProductsContent() {
@@ -14,9 +14,7 @@ function ProductsContent() {
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(
-    searchParams.get('category')
-  );
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(searchParams.get('category'));
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || searchParams.get('search') || '');
   const [sortBy, setSortBy] = useState('createdAt');
   const [page, setPage] = useState(1);
@@ -24,22 +22,18 @@ function ProductsContent() {
   const [shuffleProducts, setShuffleProducts] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Focus search input if focus param is present (for mobile)
   useEffect(() => {
     if (searchParams.get('focus') && searchInputRef.current) {
-      setTimeout(() => searchInputRef.current?.focus(), 100);
+      window.setTimeout(() => searchInputRef.current?.focus(), 100);
     }
   }, [searchParams]);
 
-  // Sync URL params with state on mount and when URL changes
   useEffect(() => {
     const category = searchParams.get('category');
     const search = searchParams.get('q') || searchParams.get('search');
-    
-    
     setSelectedCategory(category);
     setSearchQuery(search || '');
-    setPage(1); // Reset to first page on filter change
+    setPage(1);
   }, [searchParams]);
 
   useEffect(() => {
@@ -48,35 +42,32 @@ function ProductsContent() {
 
   useEffect(() => {
     fetchProducts();
-    
-    // Auto-refresh products every 30 seconds for price updates
-    const interval = setInterval(() => {
+    const interval = window.setInterval(() => {
       fetchProducts();
     }, 30000);
 
-    return () => clearInterval(interval);
+    return () => window.clearInterval(interval);
   }, [selectedCategory, searchQuery, sortBy, page, shuffleProducts]);
 
   const fetchCategories = async () => {
     try {
       const res = await axios.get('/api/products/categories');
-      setCategories(res.data.categories);
-    } catch (error) {
+      setCategories(res.data.categories || []);
+    } catch {
+      setCategories([]);
     }
   };
 
   const fetchProducts = async () => {
     setLoading(true);
-    
+
     try {
-      const params: any = { 
+      const params: any = {
         page,
         limit: 12,
-        // Force no cache
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
-      
-      // Handle sorting - extract field and order from sortBy value
+
       if (sortBy.startsWith('-')) {
         params.sortBy = sortBy.substring(1);
         params.order = 'desc';
@@ -90,36 +81,32 @@ function ProductsContent() {
         params.sortBy = sortBy;
         params.order = 'desc';
       }
-      
+
       if (selectedCategory) {
-        // Normalize category - capitalize first letter
         const normalizedCategory = selectedCategory
           .split('-')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
           .join(' ');
         params.category = normalizedCategory;
       }
       if (searchQuery) params.search = searchQuery;
 
-      const res = await axios.get('/api/products', { 
+      const res = await axios.get('/api/products', {
         params,
         headers: {
           'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
+          'Pragma': 'no-cache',
+        },
       });
-      
-      
+
       let fetchedProducts = res.data.products || [];
-      
-      // Shuffle products if enabled
       if (shuffleProducts && fetchedProducts.length > 0) {
         fetchedProducts = [...fetchedProducts].sort(() => Math.random() - 0.5);
       }
-      
+
       setProducts(fetchedProducts);
       setTotalPages(res.data.pagination?.pages || 1);
-    } catch (error) {
+    } catch {
       setProducts([]);
       setTotalPages(1);
     } finally {
@@ -128,177 +115,120 @@ function ProductsContent() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Page Header with Search Input for Mobile */}
-      <div className="mb-8">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="relative overflow-hidden rounded-[2rem] border border-amber-100 bg-gradient-to-br from-amber-50 via-white to-emerald-50 p-6 shadow-[0_30px_80px_-35px_rgba(15,23,42,0.35)] sm:p-8 lg:p-10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.22),_transparent_35%),radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.2),_transparent_40%)]" />
+        <div className="relative grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">Products</h1>
-            {selectedCategory && (
-              <p className="text-gray-600 flex items-center gap-2">
-                <span className="px-3 py-1 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-900 rounded-full text-sm font-medium border border-gray-300">
-                  {selectedCategory}
-                </span>
-              </p>
-            )}
+            <span className="inline-flex items-center rounded-full border border-amber-200 bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-amber-700">
+              <FiStar className="mr-2 h-3.5 w-3.5" /> Fresh from the farm
+            </span>
+            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-neutral-950 sm:text-4xl lg:text-5xl">
+              Curated farm favourites for modern homes.
+            </h1>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-neutral-600 sm:text-lg">
+              Discover premium honey, seasonal produce, and healthy livestock with fast ordering and simple delivery.
+            </p>
+            <form className="mt-6 flex flex-col gap-3 sm:flex-row" onSubmit={(e) => { e.preventDefault(); setPage(1); }}>
+              <div className="relative flex-1">
+                <FiSearch className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+                <input ref={searchInputRef} type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search honey, fruits, livestock..." className="w-full rounded-full border border-neutral-200 bg-white/90 py-3 pl-11 pr-4 text-sm text-neutral-800 shadow-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100" />
+              </div>
+              <button type="submit" className="rounded-full bg-neutral-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-neutral-800">
+                Search
+              </button>
+            </form>
           </div>
-          {/* Search input visible on mobile */}
-          <form
-            className="w-full sm:w-auto mt-2 sm:mt-0 flex items-center gap-2"
-            onSubmit={e => {
-              e.preventDefault();
-              setPage(1);
-              // Optionally update URL params here
-            }}
-          >
-            <input
-              ref={searchInputRef}
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search products..."
-              className="block w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-200 transition-all bg-white text-sm"
-              style={{ fontSize: '1rem' }} // Prevent iOS zoom
-            />
-            <button
-              type="submit"
-              className="px-4 py-2 bg-gradient-to-r from-gray-800 to-gray-900 text-white rounded-lg font-semibold text-sm hover:shadow-md transition-all"
-            >
-              Search
-            </button>
-          </form>
-        </div>
-      </div>
 
-      {/* Mobile Filter Button */}
-      <div className="md:hidden mb-4">
-        <MobileFilter
-          categories={categories}
-          selectedCategory={selectedCategory}
-          onSelectCategory={(cat) => {
-            setSelectedCategory(cat);
-            setPage(1);
-          }}
-          sortBy={sortBy}
-          onSortChange={setSortBy}
-        />
-      </div>
-
-      <div className="grid md:grid-cols-4 gap-8">
-        {/* Desktop Sidebar */}
-        <div className="hidden md:block md:col-span-1">
-          <CategoryFilter
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onSelectCategory={(cat) => {
-              setSelectedCategory(cat);
-              setPage(1);
-            }}
-          />
-
-          {/* Sort Options */}
-          <div className="bg-white border border-gray-200 rounded p-5 mt-4">
-            <h3 className="font-semibold text-lg mb-4 text-gray-900">Sort By</h3>
-            <select
-              value={sortBy}
-              onChange={(e) => {
-                setSortBy(e.target.value);
-                setPage(1);
-              }}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-200 transition-all bg-white cursor-pointer"
-            >
-              <option value="createdAt">Newest First</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-              <option value="rating">Highest Rated</option>
-              <option value="title">Name: A to Z</option>
-            </select>
-            
-            {/* Shuffle Toggle */}
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <label className="flex items-center justify-between cursor-pointer group">
-                <div className="flex items-center space-x-2">
-                  <FiShuffle className="w-4 h-4 text-gray-600 group-hover:text-gray-900 transition-colors" />
-                  <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors">
-                    Shuffle Results
-                  </span>
+          <div className="rounded-[1.5rem] border border-white/80 bg-white/75 p-5 shadow-lg backdrop-blur">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-neutral-500">This week’s bestsellers</p>
+                <p className="text-xl font-semibold text-neutral-950">Verified quality</p>
+              </div>
+              <div className="rounded-2xl bg-emerald-50 p-3 text-emerald-700">
+                <FiPackage className="h-6 w-6" />
+              </div>
+            </div>
+            <div className="mt-5 grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+              {[
+                { label: 'Fast dispatch', value: '24h' },
+                { label: 'Organic choices', value: '100%' },
+                { label: 'Happy shoppers', value: '4.9/5' },
+              ].map((item) => (
+                <div key={item.label} className="rounded-2xl border border-neutral-100 bg-neutral-50 p-3">
+                  <p className="text-xs uppercase tracking-[0.25em] text-neutral-500">{item.label}</p>
+                  <p className="mt-1 text-lg font-semibold text-neutral-900">{item.value}</p>
                 </div>
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    checked={shuffleProducts}
-                    onChange={(e) => {
-                      setShuffleProducts(e.target.checked);
-                      setPage(1);
-                    }}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-800"></div>
-                </div>
-              </label>
+              ))}
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Products Grid */}
+      <div className="mt-8 md:hidden">
+        <MobileFilter categories={categories} selectedCategory={selectedCategory} onSelectCategory={(cat) => { setSelectedCategory(cat); setPage(1); }} sortBy={sortBy} onSortChange={setSortBy} />
+      </div>
+
+      <div className="mt-8 grid gap-8 md:grid-cols-4">
+        <div className="hidden md:block md:col-span-1">
+          <CategoryFilter categories={categories} selectedCategory={selectedCategory} onSelectCategory={(cat) => { setSelectedCategory(cat); setPage(1); }} />
+          <div className="mt-4 rounded-[1.4rem] border border-neutral-200 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
+              <FiFilter className="h-4 w-4" /> Sort your browse
+            </div>
+            <select value={sortBy} onChange={(e) => { setSortBy(e.target.value); setPage(1); }} className="mt-4 w-full rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100">
+              <option value="createdAt">Newest first</option>
+              <option value="price-low">Price: low to high</option>
+              <option value="price-high">Price: high to low</option>
+              <option value="rating">Highest rated</option>
+              <option value="title">Name: A to Z</option>
+            </select>
+            <label className="mt-4 flex items-center justify-between rounded-2xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-700">
+              <span className="flex items-center gap-2"><FiShuffle className="h-4 w-4" /> Shuffle results</span>
+              <input type="checkbox" checked={shuffleProducts} onChange={(e) => { setShuffleProducts(e.target.checked); setPage(1); }} className="h-4 w-4 rounded border-neutral-300 text-amber-600 focus:ring-amber-500" />
+            </label>
+          </div>
+        </div>
+
         <div className="md:col-span-3">
           {searchQuery && (
-            <div className="mb-6 p-4 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-300 rounded-xl">
-              <p className="text-gray-700">
-                Search results for: <strong className="text-gray-900">&quot;{searchQuery}&quot;</strong>
-                {products.length > 0 && (
-                  <span className="ml-2 text-gray-600">({products.length} found)</span>
-                )}
-              </p>
+            <div className="mb-6 rounded-[1.2rem] border border-amber-100 bg-amber-50/70 px-4 py-3 text-sm text-neutral-700">
+              Search results for <span className="font-semibold text-neutral-900">“{searchQuery}”</span>
+              {products.length > 0 && <span className="ml-2 text-neutral-500">({products.length} found)</span>}
             </div>
           )}
 
           {loading ? (
             <LoadingSpinner branded={true} />
           ) : products.length === 0 ? (
-            <div className="text-center py-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200">
-              <FiPackage className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 text-xl font-medium mb-2">No products found</p>
-              <p className="text-gray-500 text-sm">Try adjusting your filters or search terms</p>
+            <div className="rounded-[1.6rem] border border-dashed border-neutral-300 bg-neutral-50 py-20 text-center">
+              <FiPackage className="mx-auto h-14 w-14 text-neutral-400" />
+              <p className="mt-4 text-xl font-semibold text-neutral-800">No products matched your browse</p>
+              <p className="mt-2 text-sm text-neutral-500">Try another keyword or clear your filters.</p>
               {(selectedCategory || searchQuery) && (
-                <button
-                  onClick={() => {
-                    setSelectedCategory(null);
-                    setSearchQuery('');
-                    setPage(1);
-                  }}
-                  className="mt-4 px-6 py-2 bg-gradient-to-r from-gray-800 to-gray-900 text-white rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-300 font-semibold"
-                >
-                  Clear Filters
+                <button onClick={() => { setSelectedCategory(null); setSearchQuery(''); setPage(1); }} className="mt-5 rounded-full bg-neutral-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-neutral-800">
+                  Clear filters
                 </button>
               )}
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-3 gap-3 sm:gap-4 md:gap-6 lg:gap-8 xl:gap-10">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-3">
                 {products.map((product) => (
                   <ProductCard key={product._id} product={product} />
                 ))}
               </div>
 
-              {/* Pagination */}
               {totalPages > 1 && (
-                <div className="flex justify-center items-center space-x-4 mt-8">
-                  <button
-                    onClick={() => setPage(page - 1)}
-                    disabled={page === 1}
-                    className="px-6 py-3 bg-white border border-gray-300 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gradient-to-r hover:from-gray-800 hover:to-gray-900 hover:text-white hover:border-transparent transition-all duration-300 font-medium shadow-sm hover:shadow-md"
-                  >
+                <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                  <button onClick={() => setPage(page - 1)} disabled={page === 1} className="rounded-full border border-neutral-200 bg-white px-5 py-2.5 text-sm font-semibold text-neutral-700 transition hover:border-neutral-300 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50">
                     ← Previous
                   </button>
-                  <span className="text-gray-700 font-medium px-4 py-3 bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200 shadow-sm">
-                    Page <span className="text-gray-900 font-bold">{page}</span> of {totalPages}
+                  <span className="rounded-full border border-neutral-200 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-700">
+                    Page <span className="text-neutral-950">{page}</span> of {totalPages}
                   </span>
-                  <button
-                    onClick={() => setPage(page + 1)}
-                    disabled={page === totalPages}
-                    className="px-6 py-3 bg-white border border-gray-300 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gradient-to-r hover:from-gray-800 hover:to-gray-900 hover:text-white hover:border-transparent transition-all duration-300 font-medium shadow-sm hover:shadow-md"
-                  >
+                  <button onClick={() => setPage(page + 1)} disabled={page === totalPages} className="rounded-full border border-neutral-200 bg-white px-5 py-2.5 text-sm font-semibold text-neutral-700 transition hover:border-neutral-300 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50">
                     Next →
                   </button>
                 </div>
@@ -313,7 +243,7 @@ function ProductsContent() {
 
 export default function ProductsPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><LoadingSpinner /></div>}>
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><LoadingSpinner /></div>}>
       <ProductsContent />
     </Suspense>
   );

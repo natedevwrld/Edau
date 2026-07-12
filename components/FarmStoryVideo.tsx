@@ -38,6 +38,7 @@ export default function FarmStoryVideo() {
             src={videoUrl}
             title="Edau Farm Story"
             className="w-full h-full"
+            loading="lazy"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
           />

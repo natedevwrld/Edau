@@ -1,24 +1,45 @@
-import mongoose from 'mongoose';
+import type { Mongoose } from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI;
-
-if (!MONGODB_URI) {
-  throw new Error('Missing MONGODB_URI environment variable');
-}
+const MONGODB_URI = (process.env.MONGODB_URI_KEY || process.env.MONGODB_URI || '').trim();
 
 interface MongooseCache {
-  conn: typeof mongoose | null;
-  promise: Promise<typeof mongoose> | null;
+  conn: Mongoose | null;
+  promise: Promise<Mongoose> | null;
 }
 
 declare global {
-  var mongoose: MongooseCache | undefined;
+  var mongooseCache: MongooseCache | undefined;
 }
 
-const cached: MongooseCache = global.mongoose || { conn: null, promise: null };
+const cached: MongooseCache = globalThis.mongooseCache || { conn: null, promise: null };
 
-if (!global.mongoose) {
-  global.mongoose = cached;
+if (!globalThis.mongooseCache) {
+  globalThis.mongooseCache = cached;
+}
+
+async function getMongoose() {
+  if (typeof window !== 'undefined') {
+    throw new Error('Database connection is only available on the server');
+  }
+
+  const mongooseModule = await import('mongoose');
+  mongooseModule.default.set('strictQuery', true);
+  return mongooseModule.default as Mongoose;
+}
+
+function getFriendlyMongoError(error: unknown) {
+  if (error instanceof Error && error.message) {
+    const message = error.message.toLowerCase();
+    if (message.includes('querysrv') || message.includes('enotfound') || message.includes('econnrefused') || message.includes('timed out')) {
+      return new Error('We are having trouble reaching our product catalog right now. Please try again shortly.');
+    }
+
+    if (message.includes('missing') || message.includes('environment variable')) {
+      return new Error('The store database is not configured yet. Please try again later.');
+    }
+  }
+
+  return new Error('We are having trouble loading the store right now. Please try again shortly.');
 }
 
 async function dbConnect() {
@@ -26,10 +47,21 @@ async function dbConnect() {
     return cached.conn;
   }
 
+  if (!MONGODB_URI) {
+    throw getFriendlyMongoError(new Error('Missing MONGODB_URI_KEY environment variable'));
+  }
+
   if (!cached.promise) {
-    const uri = MONGODB_URI!;
-    cached.promise = mongoose.connect(uri, {
+    const mongooseClient = await getMongoose();
+    cached.promise = mongooseClient.connect(MONGODB_URI, {
       dbName: 'edaufarm',
+      serverSelectionTimeoutMS: 7000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 10,
+      minPoolSize: 1,
+      retryWrites: true,
+      family: 4,
+      autoIndex: true,
     });
   }
 
@@ -38,9 +70,8 @@ async function dbConnect() {
     return cached.conn;
   } catch (error) {
     cached.promise = null;
-    throw error;
+    throw getFriendlyMongoError(error);
   }
 }
 
 export default dbConnect;
-export { mongoose };

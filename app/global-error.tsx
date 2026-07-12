@@ -35,18 +35,11 @@ export default function GlobalError({
                 </svg>
               </div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-3">
-                Critical Error
+                Something went wrong
               </h1>
               <p className="text-gray-600 mb-6">
-                A critical error occurred. Please refresh the page or try again later.
+                We&apos;re sorry, but this page could not be loaded right now. Please refresh the page or try again shortly.
               </p>
-              {process.env.NODE_ENV === 'development' && error.message && (
-                <div className="mt-4 p-4 bg-gray-50 border border-gray-300 rounded-lg text-left">
-                  <p className="text-xs font-mono text-gray-800 break-all">
-                    {error.message}
-                  </p>
-                </div>
-              )}
             </div>
             <button
               onClick={reset}

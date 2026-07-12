@@ -133,16 +133,17 @@ export async function GET(request: NextRequest) {
     );
   } catch (error: any) {
     const elapsed = Date.now() - startTime;
+    const friendlyMessage = error?.message || 'We are having trouble loading our products right now. Please try again shortly.';
 
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to fetch products',
-        message: error.message || 'Unknown error',
+        error: 'Products temporarily unavailable',
+        message: friendlyMessage,
         products: [],
         pagination: { page: 1, limit: 12, total: 0, pages: 1 },
       },
-      { status: 200 }
+      { status: 503 }
     );
   }
 }

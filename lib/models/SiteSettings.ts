@@ -8,7 +8,12 @@ export interface ISiteSettings extends Document {
 
 const siteSettingsSchema = new Schema<ISiteSettings>(
   {
-    id: { type: String, required: true, unique: true, index: true },
+    id: {
+      type: String,
+      unique: true,
+      index: true,
+      default: () => `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    },
     key: { type: String, required: true, unique: true, index: true },
     value: { type: String, required: true },
   },

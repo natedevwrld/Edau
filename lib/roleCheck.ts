@@ -1,11 +1,11 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 
 /**
  * Check if user has required role on the server side
  */
 export async function requireRole(allowedRoles: string[]) {
+  const { getServerSession } = await import('next-auth');
+  const { authOptions } = await import('@/lib/auth');
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user) {
@@ -13,7 +13,7 @@ export async function requireRole(allowedRoles: string[]) {
   }
 
   if (!allowedRoles.includes((session as any).user.role)) {
-    redirect('/dashboard'); // Redirect to dashboard if role doesn't match
+    redirect('/dashboard');
   }
 
   return session;

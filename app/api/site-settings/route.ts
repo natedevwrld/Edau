@@ -4,15 +4,32 @@ import SiteSettings from '@/lib/models/SiteSettings';
 
 export const dynamic = 'force-dynamic';
 
+function parseSettingValue(value: string) {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return '';
+  }
+
+  try {
+    if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+      return JSON.parse(trimmed);
+    }
+  } catch {
+    // Fall back to the raw string value.
+  }
+
+  return trimmed;
+}
+
 export async function GET() {
   try {
     await dbConnect();
 
     const settings = await SiteSettings.find({}).lean();
 
-    const settingsObject: Record<string, string> = {};
-    settings.forEach((item) => {
-      settingsObject[item.key] = item.value;
+    const settingsObject: Record<string, unknown> = {};
+    settings.forEach((item: any) => {
+      settingsObject[item.key] = parseSettingValue(item.value);
     });
 
     return NextResponse.json({ settings: settingsObject });
@@ -33,9 +50,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Key is required' }, { status: 400 });
     }
 
+    const normalizedValue = typeof value === 'string' ? value : JSON.stringify(value);
+
     await SiteSettings.findOneAndUpdate(
       { key },
-      { key, value },
+      { key, value: normalizedValue, id: key },
       { upsert: true, new: true }
     );
 

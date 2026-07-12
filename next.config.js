@@ -12,10 +12,6 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'cdn.shopify.com',
-      },
-      {
-        protocol: 'https',
         hostname: 'images.unsplash.com',
       },
       {
@@ -36,10 +32,8 @@ const nextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
   env: {
-    MONGODB_URI: process.env.MONGODB_URI,
+    MONGODB_URI_KEY: process.env.MONGODB_URI_KEY,
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
-    SHOPIFY_STORE_DOMAIN: process.env.SHOPIFY_STORE_DOMAIN,
-    SHOPIFY_ADMIN_ACCESS_TOKEN: process.env.SHOPIFY_ADMIN_ACCESS_TOKEN,
   },
 }
 

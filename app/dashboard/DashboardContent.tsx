@@ -251,9 +251,48 @@ export default function DashboardContent() {
           </div>
 
           <div className="p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">{/* Desktop Header */}
-          <div className="hidden lg:block mb-8 bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">My Dashboard</h1>
-            <p className="text-gray-700 text-lg">Welcome back, <span className="font-semibold">{session?.user?.name}</span>! 👋</p>
+          <div className="hidden lg:block mb-8 rounded-[2rem] border border-gray-200 bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 p-7 text-white shadow-[0_20px_60px_-30px_rgba(0,0,0,0.8)]">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.3em] text-gray-300">Farm dashboard</p>
+                <h1 className="mt-2 text-3xl font-semibold">Welcome back, <span className="text-amber-300">{session?.user?.name}</span></h1>
+                <p className="mt-3 max-w-2xl text-sm text-gray-300 sm:text-base">Keep track of orders, wallet activity, and your farm journey in one calm, modern workspace.</p>
+              </div>
+              <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur">
+                <p className="text-xs uppercase tracking-[0.25em] text-gray-300">Today</p>
+                <p className="mt-1 text-xl font-semibold">{orders.length} active items</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mb-8 grid gap-4 xl:grid-cols-[1.3fr_0.7fr]">
+            <div className="rounded-[1.6rem] border border-gray-200 bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-gray-500">Quick view</p>
+                  <h2 className="mt-1 text-xl font-semibold text-gray-950">Your farm account at a glance</h2>
+                </div>
+                <div className="rounded-2xl bg-amber-50 p-3 text-amber-700">
+                  <FiShoppingBag className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                {[{ label: 'Orders', value: orders.length, tint: 'bg-blue-50 text-blue-700' }, { label: 'Buybacks', value: buybacks.length, tint: 'bg-emerald-50 text-emerald-700' }, { label: 'Wallet', value: 'Ready', tint: 'bg-violet-50 text-violet-700' }].map((item) => (
+                  <div key={item.label} className="rounded-2xl border border-gray-100 bg-gray-50 p-3">
+                    <p className="text-xs uppercase tracking-[0.25em] text-gray-500">{item.label}</p>
+                    <p className="mt-1 text-lg font-semibold text-gray-900">{item.value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-[1.6rem] border border-gray-200 bg-white p-5 shadow-sm">
+              <p className="text-sm font-semibold text-gray-500">Need a hand?</p>
+              <p className="mt-2 text-lg font-semibold text-gray-950">Support is standing by.</p>
+              <p className="mt-2 text-sm leading-6 text-gray-600">From delivery questions to order updates, our team can help you keep things moving smoothly.</p>
+              <Link href="/help" className="mt-5 inline-flex items-center gap-2 rounded-full bg-gray-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-800">
+                Contact support <FiMail className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
 
       {/* Orders Tab */}

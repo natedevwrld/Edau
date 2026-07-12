@@ -30,25 +30,11 @@ export default function Error({
 
         {/* Error Message */}
         <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-3">
-          Something went wrong!
+          We&apos;re having trouble loading this page
         </h2>
         <p className="text-gray-600 mb-2">
-          We encountered an unexpected error. Don't worry, we're working on it.
+          Please try again in a moment. If the problem continues, our team will be happy to help.
         </p>
-        
-        {/* Error Details (Development only) */}
-        {process.env.NODE_ENV === 'development' && error.message && (
-          <div className="mt-4 mb-6 p-4 bg-gray-50 border border-gray-300 rounded-lg text-left">
-            <p className="text-xs font-mono text-gray-800 break-all">
-              {error.message}
-            </p>
-            {error.digest && (
-              <p className="text-xs font-mono text-gray-600 mt-2">
-                Error ID: {error.digest}
-              </p>
-            )}
-          </div>
-        )}
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 justify-center mt-8">
