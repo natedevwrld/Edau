@@ -10,6 +10,7 @@ import AuthProvider from '@/components/AuthProvider';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { Analytics } from '@vercel/analytics/react';
 import { CurrencyProvider } from '@/contexts/CurrencyContext';
+import SupportFloatingButtons from '@/components/SupportFloatingButtons';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -101,6 +102,7 @@ export default function RootLayout({
                 <main className="flex-1 bg-white">{children}</main>
                 <Footer />
                 <BottomNav />
+                <SupportFloatingButtons />
               </div>
               <Toaster position="top-right" />
               <Analytics />

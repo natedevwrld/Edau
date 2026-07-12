@@ -114,22 +114,30 @@ Only return the JSON array, no other text.`;
       );
     }
 
-    // Parse the JSON response
     let captions: CaptionResult[] = [];
     try {
-      // Remove markdown code blocks if present
       const cleanedResponse = textResponse
         .replace(/```json\n?/g, '')
         .replace(/```\n?/g, '')
         .trim();
-      captions = JSON.parse(cleanedResponse);
+      const parsed = JSON.parse(cleanedResponse);
+      captions = Array.isArray(parsed) ? parsed : [];
     } catch (parseError) {
-      // If parsing fails, try to extract captions manually
       console.error('Failed to parse AI response:', textResponse);
-      return NextResponse.json(
-        { error: 'Failed to parse AI response. Please try again.' },
-        { status: 500 }
-      );
+      captions = [
+        {
+          caption: `${productName} is freshly harvested and ready to delight your customers.`,
+          hashtags: ['#EdauFarm', '#FreshFromFarm', '#KenyaFarm'],
+        },
+        {
+          caption: `Bring home ${productName} from Edau Farm and enjoy quality you can taste and trust.`,
+          hashtags: ['#FarmToTable', '#SustainableFarming', '#EdauFarm'],
+        },
+        {
+          caption: `Choose ${productName} for a premium farm experience rooted in care, quality, and tradition.`,
+          hashtags: ['#WestPokot', '#LocalProduce', '#FreshProduce'],
+        },
+      ];
     }
 
     return NextResponse.json({ captions });

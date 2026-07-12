@@ -19,6 +19,8 @@ export interface IProduct extends Document {
   is_featured: boolean;
   is_seasonal: boolean;
   images: string[];
+  category: string | null;
+  specifications: Array<{ key: string; value: string }>;
   tags: string[];
   rating_avg: number;
   rating_count: number;
@@ -50,6 +52,8 @@ const productSchema = new Schema<IProduct>(
     is_featured: { type: Boolean, default: false, index: true },
     is_seasonal: { type: Boolean, default: false },
     images: [{ type: String }],
+    category: { type: String },
+    specifications: [{ key: { type: String }, value: { type: String } }],
     tags: [{ type: String }],
     rating_avg: { type: Number, default: 0 },
     rating_count: { type: Number, default: 0 },

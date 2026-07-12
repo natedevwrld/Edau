@@ -15,16 +15,23 @@ interface ProductDetailClientProps {
 }
 
 export default function ProductDetailClient({ initialProduct }: ProductDetailClientProps) {
+  const productId = initialProduct?._id || initialProduct?.id || '';
+
   // Validate and sanitize product data with state for live updates
   const [product, setProduct] = useState({
     ...initialProduct,
+    _id: initialProduct?._id || initialProduct?.id || '',
+    id: initialProduct?.id || initialProduct?._id || '',
     images: initialProduct?.images || [],
     rating: initialProduct?.rating || { average: 0, count: 0 },
-    stock: initialProduct?.stock || 0,
+    stock: initialProduct?.stock ?? initialProduct?.quantity ?? 0,
+    quantity: initialProduct?.quantity ?? initialProduct?.stock ?? 0,
     price: initialProduct?.price || 0,
-    title: initialProduct?.title || 'Product',
-    category: initialProduct?.category || 'Uncategorized',
+    title: initialProduct?.title || initialProduct?.name || 'Product',
+    category: initialProduct?.category || initialProduct?.category_id || 'Uncategorized',
     description: initialProduct?.description || 'No description available',
+    specifications: initialProduct?.specifications || [],
+    tags: initialProduct?.tags || [],
   });
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -34,18 +41,23 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
   useEffect(() => {
     const refreshProduct = async () => {
       try {
-        const response = await axios.get(`/api/products/${initialProduct._id}`);
+        const response = await axios.get(`/api/products/${productId}`);
         if (response.data.product) {
           const updated = response.data.product;
           setProduct({
             ...updated,
+            _id: updated._id || updated.id || '',
+            id: updated.id || updated._id || '',
             images: updated.images || [],
             rating: updated.rating || { average: 0, count: 0 },
-            stock: updated.stock || 0,
+            stock: updated.stock ?? updated.quantity ?? 0,
+            quantity: updated.quantity ?? updated.stock ?? 0,
             price: updated.price || 0,
-            title: updated.title || 'Product',
-            category: updated.category || 'Uncategorized',
+            title: updated.title || updated.name || 'Product',
+            category: updated.category || updated.category_id || 'Uncategorized',
             description: updated.description || 'No description available',
+            specifications: updated.specifications || [],
+            tags: updated.tags || [],
           });
         }
       } catch (error) {
@@ -58,10 +70,10 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
     const interval = setInterval(refreshProduct, 30000);
 
     return () => clearInterval(interval);
-  }, [initialProduct._id]);
+  }, [productId]);
 
   // Safety check
-  if (!initialProduct || !initialProduct._id) {
+  if (!initialProduct || !productId) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-16 text-center">
         <p className="text-xl text-gray-600">Product not found</p>
@@ -79,7 +91,7 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
       return;
     }
     addItem({
-      productId: product._id,
+      productId,
       title: product.title,
       price: product.price,
       image: product.images[0] || '',
@@ -284,13 +296,13 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
         </div>
 
         {/* Reviews Section */}
-        <ReviewsSection productId={product._id} initialRating={product.rating} />
+        <ReviewsSection productId={productId} initialRating={product.rating} />
 
         {/* Related Products */}
-        <RelatedProducts productId={product._id} category={product.category} />
+        <RelatedProducts productId={productId} category={product.category} />
 
         {/* Trending Products */}
-        <TrendingProducts currentProductId={product._id} />
+        <TrendingProducts currentProductId={productId} />
 
         {/* Policies */}
         <PoliciesSection />
@@ -528,7 +540,9 @@ function ReviewsSection({ productId, initialRating }: { productId: string; initi
     try {
       const res = await fetch('/api/reviews', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ productId, rating, comment }),
       });
 

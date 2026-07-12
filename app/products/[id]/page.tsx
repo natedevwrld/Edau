@@ -1,11 +1,12 @@
 import { Suspense } from 'react';
 // Force dynamic rendering for every request (no cache)
 export const dynamic = "force-dynamic";
-import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import ProductDetailClient from './ProductDetailClient';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { headers } from 'next/headers';
+import dbConnect from '@/lib/mongodb';
+import Product from '@/lib/models/Product';
+import { normalizeProductPayload } from '@/lib/utils';
 
 // Enable ISR with 10-second revalidation for faster price updates
 export const revalidate = 10; // Revalidate every 10 seconds
@@ -74,26 +75,10 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 
 async function getProduct(id: string) {
   try {
-    let baseUrl;
-    try {
-      const reqHeaders = await headers();
-      const host = reqHeaders.get('host');
-      const protocol = reqHeaders.get('x-forwarded-proto') || 'https';
-      baseUrl = `${protocol}://${host}`;
-    } catch (e) {
-      baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://edaufarm.com';
-    }
-    const res = await fetch(
-      `${baseUrl}/api/products/${id}`,
-      { 
-        next: { 
-          revalidate: 10 // Cache for 10 seconds
-        } 
-      }
-    );
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.product;
+    await dbConnect();
+    const product = await Product.findOne({ $or: [{ id }, { _id: id }] }).lean();
+    if (!product) return null;
+    return normalizeProductPayload(product);
   } catch (error) {
     return null;
   }

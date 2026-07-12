@@ -32,7 +32,7 @@ import {
   FiZap
 } from 'react-icons/fi';
 import { isAdmin } from '@/lib/roleCheck';
-import { formatPrice } from '@/lib/utils';
+import { buildGalleryShareUrl, formatPrice } from '@/lib/utils';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
@@ -122,6 +122,7 @@ export default function AdminDashboard() {
     galleryImages: ''
   });
   const [savingSettings, setSavingSettings] = useState(false);
+  const [uploadingGalleryImage, setUploadingGalleryImage] = useState(false);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -254,6 +255,43 @@ export default function AdminDashboard() {
 
   const updateSystemSetting = (key: string, value: string | boolean) => {
     setSystemSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleGalleryUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingGalleryImage(true);
+    try {
+      const formData = new FormData();
+      Array.from(files).forEach((file) => formData.append('files', file));
+
+      const response = await axios.post('/api/cloudinary/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      const newUrls = response.data.urls?.map((item: any) => item.url) || [];
+      const parsed = systemSettings.galleryImages ? JSON.parse(systemSettings.galleryImages) : [];
+      const nextItems = [...parsed, ...newUrls.map((url: string) => ({ src: url, alt: 'Gallery image', title: 'Gallery image', description: 'Public gallery image' }))];
+      updateSystemSetting('galleryImages', JSON.stringify(nextItems, null, 2));
+      toast.success('Gallery images uploaded');
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to upload gallery image');
+    } finally {
+      setUploadingGalleryImage(false);
+      event.target.value = '';
+    }
+  };
+
+  const copyGalleryShareLink = async (src: string) => {
+    try {
+      const siteUrl = window.location.origin;
+      const shareUrl = buildGalleryShareUrl(siteUrl, src);
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success('Share link copied');
+    } catch (error) {
+      toast.error('Unable to copy share link');
+    }
   };
 
   const configureGeneralSettings = () => {
@@ -1202,6 +1240,13 @@ export default function AdminDashboard() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Gallery Images JSON
                     </label>
+                    <div className="mb-3 flex items-center gap-3">
+                      <label className="inline-flex cursor-pointer items-center rounded-lg border border-primary-200 bg-primary-50 px-3 py-2 text-sm font-medium text-primary-700 hover:bg-primary-100">
+                        <input type="file" accept="image/*" multiple className="hidden" onChange={handleGalleryUpload} />
+                        {uploadingGalleryImage ? 'Uploading...' : 'Upload gallery images'}
+                      </label>
+                      <span className="text-xs text-gray-500">Shared links will use your site URL plus the image path.</span>
+                    </div>
                     <textarea
                       value={systemSettings.galleryImages}
                       onChange={(e) => updateSystemSetting('galleryImages', e.target.value)}

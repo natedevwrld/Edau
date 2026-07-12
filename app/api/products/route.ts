@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Product from '@/lib/models/Product';
-import { generateId } from '@/lib/utils';
+import { generateId, normalizeProductPayload } from '@/lib/utils';
 
 export const revalidate = 10;
 
@@ -93,24 +93,7 @@ export async function GET(request: NextRequest) {
     const total = await Product.countDocuments(query.getQuery());
     const products = await query.sort({ [sortColumn]: sortOrder }).skip(offset).limit(limit).lean();
 
-    const mappedProducts = (products || []).map((p) => ({
-      id: p.id,
-      name: p.name,
-      title: p.name,
-      description: p.description,
-      price: p.price,
-      compare_at_price: p.compare_at_price,
-      images: p.images || [],
-      category_id: p.category_id,
-      unit_type: p.unit_type,
-      is_organic: p.is_organic,
-      rating_avg: p.rating_avg,
-      rating_count: p.rating_count,
-      quantity: p.quantity,
-      is_in_stock: p.is_in_stock,
-      is_featured: p.is_featured,
-      created_at: p.created_at,
-    }));
+    const mappedProducts = (products || []).map((p) => normalizeProductPayload(p));
 
     const elapsed = Date.now() - startTime;
 
@@ -153,7 +136,26 @@ export async function POST(request: NextRequest) {
     await dbConnect();
 
     const body = await request.json();
-    const { name, description, price, category_id, quantity, images, unit_type, seller_id } = body;
+    const {
+      name,
+      description,
+      price,
+      compare_at_price,
+      category_id,
+      category,
+      quantity,
+      images,
+      unit_type,
+      seller_id,
+      origin_farm,
+      is_organic,
+      is_featured,
+      is_seasonal,
+      specifications,
+      tags,
+      is_in_stock,
+      slug,
+    } = body;
 
     if (!name || !price) {
       return NextResponse.json(
@@ -162,7 +164,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const slug = (name || '')
+    const generatedSlug = (slug || name || '')
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
@@ -170,14 +172,23 @@ export async function POST(request: NextRequest) {
     const product = new Product({
       id: generateId(),
       name,
-      slug,
+      slug: generatedSlug,
       description: description || null,
       price,
-      category_id: category_id || null,
+      compare_at_price: compare_at_price || null,
+      category_id: category_id || category || null,
+      category: category || null,
       quantity: quantity || 0,
       images: images || [],
       unit_type: unit_type || 'piece',
       seller_id: seller_id || null,
+      origin_farm: origin_farm || null,
+      is_organic: Boolean(is_organic),
+      is_featured: Boolean(is_featured),
+      is_seasonal: Boolean(is_seasonal),
+      is_in_stock: typeof is_in_stock === 'boolean' ? is_in_stock : (quantity || 0) > 0,
+      specifications: Array.isArray(specifications) ? specifications : [],
+      tags: Array.isArray(tags) ? tags : [],
     });
 
     await product.save();

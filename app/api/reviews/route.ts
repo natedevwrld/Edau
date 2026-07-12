@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
 import dbConnect from '@/lib/mongodb';
 import Review, { IReview } from '@/lib/models/Review';
 import Order from '@/lib/models/Order';
 import Product from '@/lib/models/Product';
 import { generateId } from '@/lib/utils';
+import { authOptions } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,8 +40,8 @@ export async function POST(request: NextRequest) {
   try {
     await dbConnect();
 
-    const authHeader = request.headers.get('authorization');
-    const userId = authHeader?.replace('Bearer ', '');
+    const session = await getServerSession(authOptions);
+    const userId = session?.user?.id as string | undefined;
 
     if (!userId) {
       return NextResponse.json(
@@ -51,7 +53,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { productId, rating, title, comment } = body;
 
-    if (!productId || !rating || !comment) {
+    if (!productId || typeof rating === 'undefined' || !comment) {
       return NextResponse.json(
         { error: 'Product ID, rating, and comment are required' },
         { status: 400 }
@@ -83,9 +85,9 @@ export async function POST(request: NextRequest) {
       id: generateId(),
       product_id: productId,
       user_id: userId,
-      rating,
+      rating: Number(rating),
       title: title || null,
-      comment,
+      comment: comment.trim(),
       is_verified_purchase: !!hasPurchased,
     });
 
@@ -121,8 +123,8 @@ export async function DELETE(request: NextRequest) {
   try {
     await dbConnect();
 
-    const authHeader = request.headers.get('authorization');
-    const userId = authHeader?.replace('Bearer ', '');
+    const session = await getServerSession(authOptions);
+    const userId = session?.user?.id as string | undefined;
 
     if (!userId) {
       return NextResponse.json(

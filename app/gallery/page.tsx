@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import dbConnect from '@/lib/mongodb';
 import SiteSettings from '@/lib/models/SiteSettings';
+import { buildGalleryShareUrl } from '@/lib/utils';
 
 export const metadata: Metadata = {
   title: 'Gallery - Edau Farm',
@@ -39,6 +40,7 @@ async function getGalleryImages(): Promise<GalleryImage[]> {
 
 export default async function GalleryPage() {
   const galleryImages = await getGalleryImages();
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://edaufarm.com';
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
@@ -74,6 +76,14 @@ export default async function GalleryPage() {
                   <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
                     <h3 className="text-lg font-bold">{image.title}</h3>
                     <p className="text-sm text-gray-200">{image.description}</p>
+                    <a
+                      href={buildGalleryShareUrl(baseUrl, image.src)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-2 inline-flex text-sm font-medium text-white underline"
+                    >
+                      Copy or share link
+                    </a>
                   </div>
                 </div>
               </div>

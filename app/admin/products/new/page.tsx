@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { isAdmin } from '@/lib/roleCheck';
 import toast from 'react-hot-toast';
-import { Package, ArrowLeft } from 'lucide-react';
+import { Package, ArrowLeft, Sparkles } from 'lucide-react';
 import axios from 'axios';
 import Link from 'next/link';
 import ImageUploader from '@/components/admin/ImageUploader';
@@ -30,6 +30,7 @@ export default function NewProductPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -61,6 +62,30 @@ export default function NewProductPage() {
       }
     }
   }, [status, session, router]);
+
+  const handleSuggestDescription = async () => {
+    if (!formData.title.trim()) {
+      toast.error('Enter a product name first');
+      return;
+    }
+
+    setSuggesting(true);
+    try {
+      const response = await axios.post('/api/admin/ai-description', {
+        productName: formData.title,
+        category: formData.category,
+        originFarm: formData.origin_farm,
+        unitType: formData.unit_type,
+      });
+
+      setFormData(prev => ({ ...prev, description: response.data.description || prev.description }));
+      toast.success('Description suggestion generated');
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Could not generate description');
+    } finally {
+      setSuggesting(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -183,6 +208,18 @@ export default function NewProductPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Description *
                 </label>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs text-gray-500">AI suggestions are available for the description field only.</p>
+                  <button
+                    type="button"
+                    onClick={handleSuggestDescription}
+                    disabled={suggesting || !formData.title.trim()}
+                    className="inline-flex items-center gap-2 px-3 py-2 text-sm rounded-lg border border-primary-200 text-primary-700 hover:bg-primary-50 disabled:opacity-50"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    {suggesting ? 'Generating...' : 'Suggest'}
+                  </button>
+                </div>
                 <textarea
                   name="description"
                   value={formData.description}

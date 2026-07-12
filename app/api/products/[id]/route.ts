@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Product from '@/lib/models/Product';
+import { normalizeProductPayload } from '@/lib/utils';
 
 export const revalidate = 600;
 
@@ -13,7 +14,7 @@ export async function GET(
   try {
     await dbConnect();
 
-    const product = (await Product.findOne({ id }).lean()) as any;
+    const product = (await Product.findOne({ $or: [{ id }, { _id: id }] }).lean()) as any;
 
     if (!product) {
       return NextResponse.json(
@@ -22,28 +23,7 @@ export async function GET(
       );
     }
 
-    const mappedProduct = {
-      id: product.id,
-      name: product.name,
-      title: product.name,
-      description: product.description,
-      price: product.price,
-      compare_at_price: product.compare_at_price,
-      images: product.images || [],
-      category_id: product.category_id,
-      unit_type: product.unit_type,
-      is_organic: product.is_organic,
-      rating_avg: product.rating_avg,
-      rating_count: product.rating_count,
-      quantity: product.quantity,
-      is_in_stock: product.is_in_stock,
-      is_featured: product.is_featured,
-      is_seasonal: product.is_seasonal,
-      origin_farm: product.origin_farm,
-      harvest_date: product.harvest_date,
-      seller_id: product.seller_id,
-      created_at: product.created_at,
-    };
+    const mappedProduct = normalizeProductPayload(product);
 
     return NextResponse.json(
       { product: mappedProduct },
