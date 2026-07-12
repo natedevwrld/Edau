@@ -73,38 +73,13 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 }
 
 
-// async function getProduct(id: string) {
-//   try {
-//     await dbConnect();
-//     const product = await Product.findOne({ $or: [{ id }, { _id: id }] }).lean();
-//     if (!product) return null;
-//     return normalizeProductPayload(product);
-//   } catch (error) {
-//     return null;
-//   }
-// }
-
 async function getProduct(id: string) {
   try {
     await dbConnect();
-
-    console.log("Searching for:", id);
-
-    const byId = await Product.findOne({ id });
-    console.log("by id:", byId);
-
-    const byObjectId = await Product.findById(id);
-    console.log("by objectId:", byObjectId);
-
-    if (byId) {
-      return normalizeProductPayload(byId.toObject());
-    }
-    if (byObjectId) {
-      return normalizeProductPayload(byObjectId.toObject());
-    }
-    return null;
-  } catch (err) {
-    console.error(err);
+    const product = await Product.findOne({ id }).lean();
+    if (!product) return null;
+    return normalizeProductPayload(product);
+  } catch (error) {
     return null;
   }
 }
