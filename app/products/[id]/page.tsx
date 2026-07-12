@@ -15,7 +15,7 @@ export const revalidate = 10; // Revalidate every 10 seconds
 export async function generateStaticParams() {
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_APP_URL || 'https://edaufarm.com'}/api/products?featured=true&limit=20`,
+      `${process.env.NEXT_PUBLIC_APP_URL || 'https://edau-six.vercel.app'}/api/products?featured=true&limit=20`,
       { 
         next: { 
           revalidate: 600 // Cache popular products list for 10 minutes
@@ -40,7 +40,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_APP_URL || 'https://edaufarm.com'}/api/products/${params.id}`,
+      `${process.env.NEXT_PUBLIC_APP_URL || 'https://edau-six.vercel.app'}/api/products/${params.id}`,
       { 
         next: { 
           revalidate: 10 // Cache for 10 seconds
@@ -73,13 +73,38 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 }
 
 
+// async function getProduct(id: string) {
+//   try {
+//     await dbConnect();
+//     const product = await Product.findOne({ $or: [{ id }, { _id: id }] }).lean();
+//     if (!product) return null;
+//     return normalizeProductPayload(product);
+//   } catch (error) {
+//     return null;
+//   }
+// }
+
 async function getProduct(id: string) {
   try {
     await dbConnect();
-    const product = await Product.findOne({ $or: [{ id }, { _id: id }] }).lean();
-    if (!product) return null;
-    return normalizeProductPayload(product);
-  } catch (error) {
+
+    console.log("Searching for:", id);
+
+    const byId = await Product.findOne({ id });
+    console.log("by id:", byId);
+
+    const byObjectId = await Product.findById(id);
+    console.log("by objectId:", byObjectId);
+
+    if (byId) {
+      return normalizeProductPayload(byId.toObject());
+    }
+    if (byObjectId) {
+      return normalizeProductPayload(byObjectId.toObject());
+    }
+    return null;
+  } catch (err) {
+    console.error(err);
     return null;
   }
 }
