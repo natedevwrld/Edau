@@ -16,7 +16,7 @@ export default function SupportFloatingButtons() {
   if (!mounted) return null;
 
   return (
-    <div className="fixed bottom-6 right-4 z-50 flex flex-col items-end gap-3">
+    <div className="fixed bottom-20 right-4 z-50 flex flex-col items-end gap-3 md:bottom-6">
       {open && (
         <div className="flex flex-col gap-2 rounded-2xl border border-gray-200 bg-white p-3 shadow-xl">
           <a
@@ -29,7 +29,7 @@ export default function SupportFloatingButtons() {
             Chat on WhatsApp
           </a>
           <Link
-            href="/help"
+            href="/assistant"
             className="flex items-center gap-2 rounded-xl border border-primary-200 bg-primary-50 px-4 py-3 text-sm font-medium text-primary-700 hover:bg-primary-100"
           >
             <MessageSquareText className="h-4 w-4" />

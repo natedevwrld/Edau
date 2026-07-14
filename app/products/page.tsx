@@ -118,51 +118,25 @@ function ProductsContent() {
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="relative overflow-hidden rounded-[2rem] border border-amber-100 bg-gradient-to-br from-amber-50 via-white to-emerald-50 p-6 shadow-[0_30px_80px_-35px_rgba(15,23,42,0.35)] sm:p-8 lg:p-10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.22),_transparent_35%),radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.2),_transparent_40%)]" />
-        <div className="relative grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
-          <div>
-            <span className="inline-flex items-center rounded-full border border-amber-200 bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-amber-700">
-              <FiStar className="mr-2 h-3.5 w-3.5" /> Fresh from the farm
-            </span>
-            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-neutral-950 sm:text-4xl lg:text-5xl">
-              Curated farm favourites for modern homes.
-            </h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-neutral-600 sm:text-lg">
-              Discover premium honey, seasonal produce, and healthy livestock with fast ordering and simple delivery.
-            </p>
-            <form className="mt-6 flex flex-col gap-3 sm:flex-row" onSubmit={(e) => { e.preventDefault(); setPage(1); }}>
-              <div className="relative flex-1">
-                <FiSearch className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
-                <input ref={searchInputRef} type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search honey, fruits, livestock..." className="w-full rounded-full border border-neutral-200 bg-white/90 py-3 pl-11 pr-4 text-sm text-neutral-800 shadow-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100" />
-              </div>
-              <button type="submit" className="rounded-full bg-neutral-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-neutral-800">
-                Search
-              </button>
-            </form>
-          </div>
-
-          <div className="rounded-[1.5rem] border border-white/80 bg-white/75 p-5 shadow-lg backdrop-blur">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-neutral-500">This week’s bestsellers</p>
-                <p className="text-xl font-semibold text-neutral-950">Verified quality</p>
-              </div>
-              <div className="rounded-2xl bg-emerald-50 p-3 text-emerald-700">
-                <FiPackage className="h-6 w-6" />
-              </div>
+        <div className="relative">
+          <span className="inline-flex items-center rounded-full border border-amber-200 bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-amber-700">
+            <FiStar className="mr-2 h-3.5 w-3.5" /> Fresh from the farm
+          </span>
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-neutral-950 sm:text-4xl lg:text-5xl">
+            Curated farm favourites for modern homes.
+          </h1>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-neutral-600 sm:text-lg">
+            Discover premium honey, seasonal produce, and healthy livestock with fast ordering and simple delivery.
+          </p>
+          <form className="mt-6 flex flex-col gap-3 sm:flex-row" onSubmit={(e) => { e.preventDefault(); setPage(1); }}>
+            <div className="relative flex-1">
+              <FiSearch className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+              <input ref={searchInputRef} type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search honey, fruits, livestock..." className="w-full rounded-full border border-neutral-200 bg-white/90 py-3 pl-11 pr-4 text-sm text-neutral-800 shadow-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100" />
             </div>
-            <div className="mt-5 grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
-              {[
-                { label: 'Fast dispatch', value: '24h' },
-                { label: 'Organic choices', value: '100%' },
-                { label: 'Happy shoppers', value: '4.9/5' },
-              ].map((item) => (
-                <div key={item.label} className="rounded-2xl border border-neutral-100 bg-neutral-50 p-3">
-                  <p className="text-xs uppercase tracking-[0.25em] text-neutral-500">{item.label}</p>
-                  <p className="mt-1 text-lg font-semibold text-neutral-900">{item.value}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+            <button type="submit" className="rounded-full bg-neutral-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-neutral-800">
+              Search
+            </button>
+          </form>
         </div>
       </div>
 

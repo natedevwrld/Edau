@@ -1,11 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-
-interface CaptionResult {
-  caption: string;
-  hashtags: string[];
-}
+import { generateWithGemini, GeminiError } from '@/lib/gemini';
 
 const stylePrompts: Record<string, string> = {
   market: 'Create an inviting market-day caption that makes customers want to buy right now. Focus on freshness and availability.',
@@ -24,13 +18,6 @@ const audiencePrompts: Record<string, string> = {
 
 export async function POST(request: NextRequest) {
   try {
-    if (!GEMINI_API_KEY) {
-      return NextResponse.json(
-        { error: 'Gemini API key not configured. Please add GEMINI_API_KEY to your environment variables.' },
-        { status: 500 }
-      );
-    }
-
     const body = await request.json();
     const { productName, productDescription, style, audience, additionalNotes } = body;
 
@@ -70,51 +57,23 @@ Return the response as a JSON array with 3 objects, each containing:
 
 Only return the JSON array, no other text.`;
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: prompt,
-                },
-              ],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.8,
-            maxOutputTokens: 1024,
-          },
-        }),
+    let textResponse: string;
+    try {
+      textResponse = await generateWithGemini({ prompt, temperature: 0.8, maxOutputTokens: 1024 });
+    } catch (geminiErr: any) {
+      if (geminiErr instanceof GeminiError) {
+        return NextResponse.json(
+          { error: `AI generation failed: ${geminiErr.message}` },
+          { status: geminiErr.status >= 400 && geminiErr.status < 500 ? 400 : 502 }
+        );
       }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error('Gemini API error:', errorData);
       return NextResponse.json(
         { error: 'Failed to generate captions. Please try again.' },
         { status: 500 }
       );
     }
 
-    const data = await response.json();
-    const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!textResponse) {
-      return NextResponse.json(
-        { error: 'No response from AI. Please try again.' },
-        { status: 500 }
-      );
-    }
-
-    let captions: CaptionResult[] = [];
+    let captions: { caption: string; hashtags: string[] }[] = [];
     try {
       const cleanedResponse = textResponse
         .replace(/```json\n?/g, '')
@@ -141,7 +100,7 @@ Only return the JSON array, no other text.`;
     }
 
     return NextResponse.json({ captions });
-  } catch (error) {
+  } catch (error: any) {
     console.error('AI captions error:', error);
     return NextResponse.json(
       { error: 'Failed to generate captions. Please check your API key and try again.' },

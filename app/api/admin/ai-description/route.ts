@@ -1,16 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+import { generateWithGemini, GeminiError } from '@/lib/gemini';
 
 export async function POST(request: NextRequest) {
   try {
-    if (!GEMINI_API_KEY) {
-      return NextResponse.json(
-        { error: 'Gemini API key not configured. Please add GEMINI_API_KEY to your environment variables.' },
-        { status: 500 }
-      );
-    }
-
     const body = await request.json();
     const { productName, category, originFarm, unitType } = body;
 
@@ -27,32 +19,26 @@ Unit Type: ${unitType || 'piece'}
 
 Return only the description text, no bullets, and no extra commentary.`;
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 256 },
-        }),
+    let description: string;
+    try {
+      description = await generateWithGemini({ prompt, temperature: 0.7, maxOutputTokens: 256 });
+    } catch (geminiErr: any) {
+      if (geminiErr instanceof GeminiError) {
+        return NextResponse.json(
+          { error: `AI generation failed: ${geminiErr.message}`, description: fallbackDescription(productName) },
+          { status: geminiErr.status >= 400 && geminiErr.status < 500 ? 400 : 502 }
+        );
       }
-    );
-
-    if (!response.ok) {
-      throw new Error('AI service unavailable');
+      return NextResponse.json({ description: fallbackDescription(productName) });
     }
 
-    const data = await response.json();
-    const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-
-    if (!textResponse) {
-      throw new Error('No description generated');
-    }
-
-    return NextResponse.json({ description: textResponse });
-  } catch (error) {
-    const fallback = `Crafted with care at Edau Farm, this product is a quality choice for customers who value freshness, reliability, and farm-to-table goodness.`;
-    return NextResponse.json({ description: fallback });
+    return NextResponse.json({ description });
+  } catch (error: any) {
+    console.error('AI description error:', error);
+    return NextResponse.json({ description: fallbackDescription('this product') });
   }
+}
+
+function fallbackDescription(productName: string): string {
+  return `Crafted with care at Edau Farm, ${productName} is a quality choice for customers who value freshness, reliability, and farm-to-table goodness.`;
 }
