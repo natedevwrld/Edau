@@ -413,47 +413,52 @@ export default function AdminProductsPage() {
                         </div>
                       )}
 
-                      <div className="grid grid-cols-5 gap-3">
+                      <div className="grid grid-cols-5 gap-2">
                         <Link
                           href={`/products/${product._id}`}
-                          className="flex items-center justify-center gap-1 px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm"
+                          className="flex flex-col items-center justify-center gap-1 py-2 px-1 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
                           title="View Product"
                         >
                           <Eye className="w-4 h-4" />
+                          <span className="text-[10px] leading-none">View</span>
                         </Link>
                         <Link
                           href={`/admin/products/${product._id}`}
-                          className="flex items-center justify-center gap-1 px-3 py-2 border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 text-sm"
+                          className="flex flex-col items-center justify-center gap-1 py-2 px-1 border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50"
                           title="Edit Product"
                         >
                           <Edit className="w-4 h-4" />
+                          <span className="text-[10px] leading-none">Edit</span>
                         </Link>
                         <Link
                           href={`/admin/reviews?add=1&productId=${product._id}`}
-                          className="flex items-center justify-center gap-1 px-3 py-2 border border-green-300 text-green-700 rounded-lg hover:bg-green-50 text-sm"
+                          className="flex flex-col items-center justify-center gap-1 py-2 px-1 border border-green-300 text-green-700 rounded-lg hover:bg-green-50"
                           title="Add Review"
                         >
                           <Plus className="w-4 h-4" />
+                          <span className="text-[10px] leading-none">Review</span>
                         </Link>
                         <button
                           onClick={() => handleToggleFeatured(product._id, product.featured)}
                           disabled={actionLoading === product._id}
-                          className={`flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-sm disabled:opacity-50 ${
+                          className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg disabled:opacity-50 ${
                             product.featured
                               ? 'bg-purple-100 text-purple-700 hover:bg-purple-200'
                               : 'border border-purple-300 text-purple-700 hover:bg-purple-50'
                           }`}
                           title={product.featured ? 'Unfeature' : 'Feature'}
                         >
-                          ★
+                          <span className="text-base leading-none">★</span>
+                          <span className="text-[10px] leading-none">Feature</span>
                         </button>
                         <button
                           onClick={() => handleDeleteProduct(product._id, product.title)}
                           disabled={actionLoading === product._id}
-                          className="flex items-center justify-center gap-1 px-3 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 text-sm disabled:opacity-50"
+                          className="flex flex-col items-center justify-center gap-1 py-2 px-1 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 disabled:opacity-50"
                           title="Delete Product"
                         >
                           <Trash2 className="w-4 h-4" />
+                          <span className="text-[10px] leading-none">Delete</span>
                         </button>
                       </div>
                     </div>

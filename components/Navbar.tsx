@@ -8,6 +8,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import DynamicSearch from './DynamicSearch';
 import { useState } from 'react';
 import { useCurrency, currencies } from '@/contexts/CurrencyContext';
+import NotificationBell from './NotificationBell';
 
 export default function Navbar() {
     const { currency, setCurrency } = useCurrency();
@@ -62,6 +63,8 @@ export default function Navbar() {
                 </span>
               )}
             </Link>
+            {/* Notifications */}
+            <NotificationBell />
             {/* Currency Switcher - spaced far from Cart and Account */}
             <div className="relative mx-8">
               <button
@@ -248,6 +251,12 @@ export default function Navbar() {
                 </span>
               )}
             </Link>
+
+            <div className="flex items-center justify-between px-4 py-2">
+              <span className="text-gray-700 font-medium">Notifications</span>
+              <NotificationBell />
+            </div>
+
 
             {/* Language Switcher Mobile */}
             <div className="border-t border-gray-200 pt-3 mt-3">

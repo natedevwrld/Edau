@@ -4,6 +4,7 @@ import Order from '@/lib/models/Order';
 import OrderItem from '@/lib/models/OrderItem';
 import CartItem from '@/lib/models/CartItem';
 import { generateId, generateOrderNumber } from '@/lib/utils';
+import { createNotification } from '@/lib/notifications';
 
 export async function GET(request: NextRequest) {
   try {
@@ -103,6 +104,22 @@ export async function POST(request: NextRequest) {
     });
 
     await order.save();
+
+    // In-app notifications (fire-and-forget; helper swallows its own errors).
+    void createNotification({
+      recipient: userId,
+      type: 'order',
+      title: 'Order placed successfully',
+      message: `Your order #${orderNumber} for KSh ${total.toLocaleString()} is being processed.`,
+      link: '/dashboard',
+    });
+    void createNotification({
+      recipient: 'admin',
+      type: 'order',
+      title: 'New order received',
+      message: `Order #${orderNumber} from ${buyerName || 'a customer'} — KSh ${total.toLocaleString()}.`,
+      link: '/admin/orders',
+    });
 
     const orderItems = items.map((item: any) => ({
       id: generateId(),

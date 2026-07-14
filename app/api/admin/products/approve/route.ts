@@ -5,6 +5,7 @@ import dbConnect from '@/lib/mongodb';
 import Product from '@/lib/models/Product';
 import Profile from '@/lib/models/Profile';
 import { normalizeProductPayload } from '@/lib/utils';
+import { createNotification } from '@/lib/notifications';
 
 export const dynamic = 'force-dynamic';
 
@@ -65,6 +66,19 @@ export async function POST(req: NextRequest) {
 
     if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+    }
+
+    const sellerId = (product as any).seller_id;
+    if (sellerId) {
+      void createNotification({
+        recipient: sellerId,
+        type: approved ? 'product_approved' : 'product_rejected',
+        title: approved ? 'Product approved' : 'Product not approved',
+        message: approved
+          ? `Your product "${product.name || 'item'}" is now live on Edau Farm.`
+          : `Your product "${product.name || 'item'}" was not approved. Please review and resubmit.`,
+        link: '/dashboard',
+      });
     }
 
     return NextResponse.json({

@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import { Toaster } from 'react-hot-toast';
 import AuthProvider from '@/components/AuthProvider';
 import { LanguageProvider } from '@/contexts/LanguageContext';
+import { NotificationProvider } from '@/contexts/NotificationContext';
 import { Analytics } from '@vercel/analytics/react';
 import { CurrencyProvider } from '@/contexts/CurrencyContext';
 import SupportFloatingButtons from '@/components/SupportFloatingButtons';
@@ -97,6 +98,7 @@ export default function RootLayout({
         <CurrencyProvider>
           <LanguageProvider>
             <AuthProvider>
+              <NotificationProvider>
               <div className="min-h-screen flex flex-col">
                 <TopBar />
                 <main className="flex-1 bg-white">{children}</main>
@@ -106,6 +108,7 @@ export default function RootLayout({
               </div>
               <Toaster position="top-right" />
               <Analytics />
+            </NotificationProvider>
             </AuthProvider>
           </LanguageProvider>
         </CurrencyProvider>

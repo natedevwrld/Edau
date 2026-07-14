@@ -613,7 +613,6 @@ export default function AdminDashboard() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-primary-800 truncate">{product.title}</p>
-                          <p className="text-xs text-primary-600">{product.sales || 0} sales</p>
                         </div>
                         <div className="text-sm font-semibold text-primary-800">
                           {formatPrice(product.price)}
