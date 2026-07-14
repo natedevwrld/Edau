@@ -30,10 +30,10 @@ import {
   FiRefreshCw,
   FiStar,
   FiZap,
-  FiImages
+  FiImage,
 } from 'react-icons/fi';
 import { isAdmin } from '@/lib/roleCheck';
-import { buildGalleryShareUrl, formatPrice } from '@/lib/utils';
+import { formatPrice } from '@/lib/utils';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
@@ -120,10 +120,8 @@ export default function AdminDashboard() {
     farmStoryVideoUrl: '',
     heroImageUrl: '',
     heroImageAlt: 'Edau Farm hero image',
-    galleryImages: ''
   });
   const [savingSettings, setSavingSettings] = useState(false);
-  const [uploadingGalleryImage, setUploadingGalleryImage] = useState(false);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -154,16 +152,12 @@ export default function AdminDashboard() {
     try {
       const response = await axios.get('/api/site-settings');
       if (response.data.settings) {
-        const galleryImages = response.data.settings.gallery_images;
-        setSystemSettings(prev => ({
-          ...prev,
-          farmStoryVideoUrl: response.data.settings.farm_story_video_url || '',
-          heroImageUrl: response.data.settings.hero_image_url || '',
-          heroImageAlt: response.data.settings.hero_image_alt || 'Edau Farm hero image',
-          galleryImages: typeof galleryImages === 'string'
-            ? galleryImages
-            : JSON.stringify(galleryImages || [], null, 2)
-        }));
+      setSystemSettings(prev => ({
+        ...prev,
+        farmStoryVideoUrl: response.data.settings.farm_story_video_url || '',
+        heroImageUrl: response.data.settings.hero_image_url || '',
+        heroImageAlt: response.data.settings.hero_image_alt || 'Edau Farm hero image',
+      }));
       }
     } catch (error) {
       // Silently fail - settings not critical
@@ -242,10 +236,6 @@ export default function AdminDashboard() {
         key: 'hero_image_alt',
         value: systemSettings.heroImageAlt
       });
-      await axios.post('/api/site-settings', {
-        key: 'gallery_images',
-        value: systemSettings.galleryImages
-      });
       toast.success('System settings saved successfully');
     } catch (error) {
       toast.error('Failed to save system settings');
@@ -256,43 +246,6 @@ export default function AdminDashboard() {
 
   const updateSystemSetting = (key: string, value: string | boolean) => {
     setSystemSettings(prev => ({ ...prev, [key]: value }));
-  };
-
-  const handleGalleryUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
-
-    setUploadingGalleryImage(true);
-    try {
-      const formData = new FormData();
-      Array.from(files).forEach((file) => formData.append('files', file));
-
-      const response = await axios.post('/api/cloudinary/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-
-      const newUrls = response.data.urls?.map((item: any) => item.url) || [];
-      const parsed = systemSettings.galleryImages ? JSON.parse(systemSettings.galleryImages) : [];
-      const nextItems = [...parsed, ...newUrls.map((url: string) => ({ src: url, alt: 'Gallery image', title: 'Gallery image', description: 'Public gallery image' }))];
-      updateSystemSetting('galleryImages', JSON.stringify(nextItems, null, 2));
-      toast.success('Gallery images uploaded');
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to upload gallery image');
-    } finally {
-      setUploadingGalleryImage(false);
-      event.target.value = '';
-    }
-  };
-
-  const copyGalleryShareLink = async (src: string) => {
-    try {
-      const siteUrl = window.location.origin;
-      const shareUrl = buildGalleryShareUrl(siteUrl, src);
-      await navigator.clipboard.writeText(shareUrl);
-      toast.success('Share link copied');
-    } catch (error) {
-      toast.error('Unable to copy share link');
-    }
   };
 
   const configureGeneralSettings = () => {
@@ -381,7 +334,7 @@ export default function AdminDashboard() {
     { id: 'users', label: 'Users', icon: FiUsers },
     { id: 'reviews', label: 'Reviews', icon: FiStar },
     { id: 'aicaptions', label: 'AI Captions', icon: FiZap, href: '/admin/ai-captions' },
-    { id: 'gallery', label: 'Gallery', icon: FiImages, href: '/admin/gallery' },
+    { id: 'gallery', label: 'Gallery', icon: FiImage, href: '/admin/gallery' },
     { id: 'aiusage', label: 'AI Usage', icon: FiActivity, href: '/admin/ai-usage' },
     { id: 'finance', label: 'Finance', icon: FiCreditCard },
     { id: 'settings', label: 'Settings', icon: FiSettings },
@@ -1236,33 +1189,12 @@ export default function AdminDashboard() {
                       placeholder="Edau Farm hero image"
                       className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     />
-                  </div>
+                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Gallery Images JSON
-                    </label>
-                    <div className="mb-3 flex items-center gap-3">
-                      <label className="inline-flex cursor-pointer items-center rounded-lg border border-primary-200 bg-primary-50 px-3 py-2 text-sm font-medium text-primary-700 hover:bg-primary-100">
-                        <input type="file" accept="image/*" multiple className="hidden" onChange={handleGalleryUpload} />
-                        {uploadingGalleryImage ? 'Uploading...' : 'Upload gallery images'}
-                      </label>
-                      <span className="text-xs text-gray-500">Shared links will use your site URL plus the image path.</span>
-                    </div>
-                    <textarea
-                      value={systemSettings.galleryImages}
-                      onChange={(e) => updateSystemSetting('galleryImages', e.target.value)}
-                      placeholder='[{"src":"https://example.com/image.jpg","alt":"Farm image","title":"Farm","description":"A short description"}]'
-                      rows={8}
-                      className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-mono text-sm"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Provide gallery items as a JSON array of objects with src, alt, title, and description fields.</p>
-                  </div>
-
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="maintenanceMode"
+                   <div className="flex items-center">
+                     <input
+                       type="checkbox"
+                       id="maintenanceMode"
                       checked={systemSettings.maintenanceMode}
                       onChange={(e) => updateSystemSetting('maintenanceMode', e.target.checked)}
                       className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-primary-200 rounded"

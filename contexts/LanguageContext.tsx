@@ -15,7 +15,7 @@ const translations = {
     // Navigation
     'nav.home': 'Home',
     'nav.categories': 'Categories',
-    'nav.cart': 'Cart',
+    'nav.gallery': 'Gallery',
     'nav.account': 'Account',
     'nav.search': 'Search products...',
     'nav.help': 'Help',
@@ -142,7 +142,7 @@ const translations = {
     // Navigation
     'nav.home': 'Accueil',
     'nav.categories': 'Catégories',
-    'nav.cart': 'Panier',
+    'nav.gallery': 'Galerie',
     'nav.account': 'Compte',
     'nav.search': 'Rechercher des produits...',
     'nav.help': 'Aide',
@@ -270,7 +270,7 @@ const translations = {
     // Navigation
     'nav.home': 'الرئيسية',
     'nav.categories': 'الفئات',
-    'nav.cart': 'السلة',
+    'nav.gallery': 'المعرض',
     'nav.account': 'الحساب',
     'nav.search': 'البحث عن المنتجات...',
     'nav.help': 'مساعدة',

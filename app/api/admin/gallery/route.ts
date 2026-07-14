@@ -32,27 +32,45 @@ function extractPublicId(url?: string): string {
 async function readGallery(): Promise<any[]> {
   await dbConnect();
   const record = await SiteSettings.findOne({ key: KEY }).lean<any>();
-  const raw = typeof record?.value === 'string' ? record.value : '';
+  let raw = typeof record?.value === 'string' ? record.value : '';
+  if (!raw && record?.value) {
+    raw = JSON.stringify(record.value);
+  }
   let arr: any[] = [];
   if (raw) {
     try {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) arr = parsed;
+      else if (parsed && typeof parsed === 'object') arr = [parsed];
     } catch {
       arr = [];
     }
   }
-  // Normalize: ensure id + publicId.
   return arr
-    .filter((item) => item && item.src)
-    .map((item) => ({
-      id: item.id || generateId(),
-      src: item.src,
-      publicId: item.publicId || extractPublicId(item.src),
-      alt: item.alt || '',
-      title: item.title || '',
-      description: item.description || '',
-    }));
+    .map((item) => {
+      if (typeof item === 'string') {
+        return {
+          id: generateId(),
+          src: item,
+          publicId: extractPublicId(item),
+          alt: '',
+          title: '',
+          description: '',
+        };
+      }
+      if (!item || typeof item !== 'object') return null;
+      const src = item.src || item.secure_url || item.url || '';
+      if (!src) return null;
+      return {
+        id: item.id || generateId(),
+        src,
+        publicId: item.publicId || item.public_id || extractPublicId(src),
+        alt: item.alt || item.alt_text || '',
+        title: item.title || '',
+        description: item.description || item.caption || '',
+      };
+    })
+    .filter(Boolean);
 }
 
 async function writeGallery(items: any[]) {
