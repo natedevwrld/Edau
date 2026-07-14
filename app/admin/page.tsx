@@ -29,7 +29,8 @@ import {
   FiCheckCircle,
   FiRefreshCw,
   FiStar,
-  FiZap
+  FiZap,
+  FiImages
 } from 'react-icons/fi';
 import { isAdmin } from '@/lib/roleCheck';
 import { buildGalleryShareUrl, formatPrice } from '@/lib/utils';
@@ -380,6 +381,7 @@ export default function AdminDashboard() {
     { id: 'users', label: 'Users', icon: FiUsers },
     { id: 'reviews', label: 'Reviews', icon: FiStar },
     { id: 'aicaptions', label: 'AI Captions', icon: FiZap, href: '/admin/ai-captions' },
+    { id: 'gallery', label: 'Gallery', icon: FiImages, href: '/admin/gallery' },
     { id: 'aiusage', label: 'AI Usage', icon: FiActivity, href: '/admin/ai-usage' },
     { id: 'finance', label: 'Finance', icon: FiCreditCard },
     { id: 'settings', label: 'Settings', icon: FiSettings },
