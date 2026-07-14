@@ -1,5 +1,52 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateWithGemini, GeminiError } from '@/lib/gemini';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import dbConnect from '@/lib/mongodb';
+import CaptionHistory from '@/lib/models/CaptionHistory';
+import Profile from '@/lib/models/Profile';
+import { generateWithGemini, GeminiError, GEMINI_MODEL } from '@/lib/gemini';
+
+export const dynamic = 'force-dynamic';
+
+// GET: return saved caption history, latest first, so admins can reuse
+// previous generations instead of re-calling the model (saves tokens).
+export async function GET() {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    await dbConnect();
+    const profile = await Profile.findOne({ id: session.user.id }).lean();
+    if ((profile as any)?.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden - Admin only' }, { status: 403 });
+    }
+
+    const history = await CaptionHistory.find({})
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .lean();
+
+    return NextResponse.json({
+      history: (history || []).map((h: any) => ({
+        _id: h._id,
+        productName: h.productName,
+        productDescription: h.productDescription,
+        style: h.style,
+        audience: h.audience,
+        additionalNotes: h.additionalNotes,
+        captions: h.captions,
+        aiModel: h.aiModel,
+        createdAt: h.createdAt,
+      })),
+    });
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: 'Failed to load caption history', message: error.message },
+      { status: 500 }
+    );
+  }
+}
 
 const stylePrompts: Record<string, string> = {
   market: 'Create an inviting market-day caption that makes customers want to buy right now. Focus on freshness and availability.',
@@ -18,6 +65,11 @@ const audiencePrompts: Record<string, string> = {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { productName, productDescription, style, audience, additionalNotes } = body;
 
@@ -99,12 +151,39 @@ Only return the JSON array, no other text.`;
       ];
     }
 
-    return NextResponse.json({ captions });
+    return NextResponse.json({ captions, historyId: await saveHistory({
+      userId: session.user.id,
+      productName,
+      productDescription,
+      style: style || 'market',
+      audience: audience || 'families',
+      additionalNotes,
+      captions,
+    }) });
   } catch (error: any) {
     console.error('AI captions error:', error);
     return NextResponse.json(
       { error: 'Failed to generate captions. Please check your API key and try again.' },
       { status: 500 }
     );
+  }
+}
+
+async function saveHistory(entry: {
+  userId: string;
+  productName: string;
+  productDescription?: string;
+  style: string;
+  audience: string;
+  additionalNotes?: string;
+  captions: { caption: string; hashtags: string[] }[];
+}): Promise<string | null> {
+  try {
+    await dbConnect();
+    const doc = await CaptionHistory.create({ ...entry, aiModel: GEMINI_MODEL });
+    return doc._id?.toString() || null;
+  } catch (err) {
+    console.error('Failed to persist caption history:', err);
+    return null;
   }
 }

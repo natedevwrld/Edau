@@ -17,12 +17,26 @@ import {
   FiCheck,
   FiHash,
   FiTarget,
-  FiUsers
+  FiUsers,
+  FiClock,
+  FiArrowDownLeft,
 } from 'react-icons/fi';
 
 interface CaptionResult {
   caption: string;
   hashtags: string[];
+}
+
+interface HistoryEntry {
+  _id: string;
+  productName: string;
+  productDescription?: string;
+  style: string;
+  audience: string;
+  additionalNotes?: string;
+  captions: CaptionResult[];
+  aiModel: string;
+  createdAt: string;
 }
 
 const captionStyles = [
@@ -51,6 +65,8 @@ export default function AICaptionsPage() {
   const [generating, setGenerating] = useState(false);
   const [results, setResults] = useState<CaptionResult[]>([]);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -60,6 +76,22 @@ export default function AICaptionsPage() {
       router.push('/dashboard');
     }
   }, [status, session, router]);
+
+  const loadHistory = useCallback(async () => {
+    try {
+      setHistoryLoading(true);
+      const res = await axios.get('/api/admin/ai-captions');
+      setHistory(res.data.history || []);
+    } catch {
+      // history is optional; ignore failures
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (status === 'authenticated') loadHistory();
+  }, [status, loadHistory]);
 
   const generateCaptions = useCallback(async () => {
     if (!productName.trim()) {
@@ -81,13 +113,26 @@ export default function AICaptionsPage() {
 
       setResults(response.data.captions || []);
       toast.success('Captions generated successfully');
+      loadHistory();
     } catch (error: any) {
       console.error('Error generating captions:', error);
       toast.error(error.response?.data?.error || 'Failed to generate captions. Please check your API key.');
     } finally {
       setGenerating(false);
     }
-  }, [productName, productDescription, selectedStyle, selectedAudience, additionalNotes]);
+  }, [productName, productDescription, selectedStyle, selectedAudience, additionalNotes, loadHistory]);
+
+  // Reuse a previously generated set without calling the AI (saves tokens).
+  const useFromHistory = (entry: HistoryEntry) => {
+    setProductName(entry.productName || '');
+    if (entry.productDescription) setProductDescription(entry.productDescription);
+    if (entry.style) setSelectedStyle(entry.style);
+    if (entry.audience) setSelectedAudience(entry.audience);
+    if (entry.additionalNotes) setAdditionalNotes(entry.additionalNotes);
+    setResults(entry.captions || []);
+    toast.success('Loaded saved captions — no tokens used');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const copyToClipboard = async (text: string, index: number) => {
     try {
@@ -338,6 +383,67 @@ export default function AICaptionsPage() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Saved caption history — latest on top, reusable to save tokens */}
+        <div className="mt-8 bg-white rounded-2xl shadow-lg border border-primary-100 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-primary-800 flex items-center gap-2">
+              <FiClock className="w-5 h-5" />
+              Saved Caption History
+            </h2>
+            <button
+              onClick={loadHistory}
+              className="text-sm text-primary-600 hover:text-primary-800 flex items-center gap-1"
+            >
+              <FiRefreshCw className="w-4 h-4" /> Refresh
+            </button>
+          </div>
+
+          {historyLoading ? (
+            <p className="text-sm text-gray-500">Loading history…</p>
+          ) : history.length === 0 ? (
+            <p className="text-sm text-gray-500">
+              No saved captions yet. Generated captions are stored here automatically and can be reused without spending tokens.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {history.map((entry) => (
+                <div
+                  key={entry._id}
+                  className="rounded-xl border border-primary-100 bg-gradient-to-br from-primary-50 to-green-50 p-4"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-gray-900 truncate">{entry.productName}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {entry.style} · {entry.audience} ·{' '}
+                        {new Date(entry.createdAt).toLocaleString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => useFromHistory(entry)}
+                      className="flex items-center gap-1 rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700 whitespace-nowrap"
+                    >
+                      <FiArrowDownLeft className="w-4 h-4" /> Use
+                    </button>
+                  </div>
+                  <ul className="mt-3 space-y-1">
+                    {entry.captions.map((c, i) => (
+                      <li key={i} className="text-sm text-gray-700 line-clamp-2">
+                        {i + 1}. {c.caption}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -3,6 +3,12 @@ import dbConnect from '@/lib/mongodb';
 import Product from '@/lib/models/Product';
 import { normalizeProductPayload } from '@/lib/utils';
 
+// Match by the string `id` field, or by Mongo `_id` when the value is a valid ObjectId.
+function byId(id: string) {
+  const isObjectId = /^[a-f\d]{24}$/i.test(id);
+  return isObjectId ? { $or: [{ id }, { _id: id }] } : { id };
+}
+
 export const revalidate = 600;
 
 export async function GET(
@@ -53,7 +59,7 @@ export async function PUT(
     const body = await request.json();
 
     const product = (await Product.findOneAndUpdate(
-      { id },
+      byId(id),
       { ...body, updated_at: new Date() },
       { new: true }
     ).lean()) as any;
@@ -83,7 +89,7 @@ export async function DELETE(
   try {
     await dbConnect();
 
-    const product = (await Product.findOneAndDelete({ id }).lean()) as any;
+    const product = (await Product.findOneAndDelete(byId(id)).lean()) as any;
 
     if (!product) {
       return NextResponse.json(
