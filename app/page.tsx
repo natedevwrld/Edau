@@ -126,8 +126,21 @@ export default async function Home() {
     getSiteSettings(),
   ]);
 
+  // Fallback farm categories so the landing page always showcases the
+  // provided Edau imagery when the Category collection is empty.
+  const displayCategories =
+    categories && categories.length > 0
+      ? categories
+      : [
+          { id: 'honey', slug: 'honey', name: 'Pure Honey', description: 'Raw, unprocessed acacia honey.' },
+          { id: 'fruits', slug: 'fruits', name: 'Seasonal Fruits', description: 'Fresh, sun-ripened farm fruits.' },
+          { id: 'livestock', slug: 'livestock', name: 'Dorper Sheep', description: 'Quality livestock from West Pokot.' },
+          { id: 'poultry', slug: 'poultry', name: 'Free-Range Poultry', description: 'Improved Kienyeji poultry.' },
+        ];
+
   const heroImageUrl = typeof siteSettings.hero_image_url === 'string' ? siteSettings.hero_image_url : '';
   const heroImageAlt = typeof siteSettings.hero_image_alt === 'string' ? siteSettings.hero_image_alt : 'Edau Farm hero image';
+  const honeyImage = EDAU_IMAGES.honey;
 
   return (
     <div className="min-h-screen bg-white">
@@ -227,9 +240,9 @@ export default async function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             <div className="relative h-[400px] lg:h-[500px] rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-primary-700 via-amber-500 to-emerald-700">
-              {heroImageUrl ? (
+              {honeyImage || heroImageUrl ? (
                 <Image
-                  src={heroImageUrl}
+                  src={honeyImage || heroImageUrl}
                   alt={heroImageAlt}
                   fill
                   className="object-cover"
@@ -419,7 +432,7 @@ export default async function Home() {
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
-            {categories.map((category, i) => (
+            {displayCategories.map((category, i) => (
               <Link
                 key={category.id}
                 href={`/products?category=${category.slug}`}
@@ -427,7 +440,7 @@ export default async function Home() {
               >
                 <div className={`relative ${i === 0 ? 'h-[400px] lg:h-full' : 'h-[200px] lg:h-[280px]'}`}>
                   <Image
-                    src={`https://images.unsplash.com/${getCategoryImage(category.slug)}?w=800&q=80`}
+                    src={getCategoryImage(category.slug)}
                     alt={category.name}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -460,12 +473,19 @@ export default async function Home() {
 
 function getCategoryImage(slug: string): string {
   const images: Record<string, string> = {
-    'honey': 'photo-1587049352846-4a232e259e83',
-    'fruits': 'photo-1619566636858-adf8ef8c7d23',
-    'livestock': 'photo-1484557985045-edf25e08da73',
-    'poultry': 'photo-1548550023-2cdb30c18c73',
-    'vegetables': 'photo-1540420779-6626-4b7a-b4ab-0b59e89c1c0d',
-    'dairy': 'photo-1628088062854-d8c8cf37c0f5',
+    'honey': EDAU_IMAGES.honey,
+    'fruits': EDAU_IMAGES.fruits,
+    'livestock': EDAU_IMAGES.sheep,
+    'poultry': EDAU_IMAGES.poultry,
+    'vegetables': 'https://images.unsplash.com/photo-1540420779-6626-4b7a-b4ab-0b59e89c1c0d?w=800&q=80',
+    'dairy': 'https://images.unsplash.com/photo-1628088062854-d8c8cf37c0f5?w=800&q=80',
   };
-  return images[slug] || 'photo-1500651230702-0e2d8a49d4e7';
+  return images[slug] || 'https://images.unsplash.com/photo-1500651230702-0e2d8a49d4e7?w=800&q=80';
 }
+
+const EDAU_IMAGES = {
+  honey: 'https://res.cloudinary.com/dt05sixza/image/upload/v1767535679/edau_gallery/pm4gjp92azavkry6w1uy.jpg',
+  sheep: 'https://res.cloudinary.com/dt05sixza/image/upload/v1767535826/edau_gallery/sag1w1ph379oskzy9zql.jpg',
+  fruits: 'https://res.cloudinary.com/dt05sixza/image/upload/v1767181057/edau_gallery/kia7i5ewpg1rhkqadufv.jpg',
+  poultry: 'https://res.cloudinary.com/dt05sixza/image/upload/v1780680793/edau_gallery/oezwqkgmkfxg03tpo3ly.jpg',
+};

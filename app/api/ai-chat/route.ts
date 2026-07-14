@@ -8,7 +8,7 @@ import AIUsageLog from '@/lib/models/AIUsageLog';
 import { normalizeProductPayload } from '@/lib/utils';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const MODEL = 'gemini-2.0-flash';
+const MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
 interface ChatMessage {

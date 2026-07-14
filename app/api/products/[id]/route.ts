@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Product from '@/lib/models/Product';
 import { normalizeProductPayload } from '@/lib/utils';
+import { createNotification } from '@/lib/notifications';
 
 // Match by the string `id` field, or by Mongo `_id` when the value is a valid ObjectId.
 function byId(id: string) {
@@ -69,6 +70,18 @@ export async function PUT(
         { error: 'Product not found' },
         { status: 404 }
       );
+    }
+
+    // Notify the seller that their product was updated.
+    const sellerId = (product as any).seller_id;
+    if (sellerId) {
+      void createNotification({
+        recipient: sellerId,
+        type: 'system',
+        title: 'Product updated',
+        message: `Your product "${product.name || product.title || 'item'}" was updated by an admin.`,
+        link: '/dashboard',
+      });
     }
 
     return NextResponse.json({ message: 'Product updated successfully', product });

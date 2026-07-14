@@ -76,7 +76,9 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 async function getProduct(id: string) {
   try {
     await dbConnect();
-    const product = await Product.findOne({ id }).lean();
+    const isObjectId = /^[a-f\d]{24}$/i.test(id);
+    const filter = isObjectId ? { $or: [{ id }, { _id: id }] } : { id };
+    const product = await Product.findOne(filter).lean();
     if (!product) return null;
     return normalizeProductPayload(product);
   } catch (error) {

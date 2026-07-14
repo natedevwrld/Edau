@@ -118,6 +118,7 @@ export default function EditProductPage() {
 
       const productData = {
         name: formData.title,
+        title: formData.title,
         description: formData.description,
         price: parseFloat(formData.price),
         compare_at_price: formData.compareAtPrice ? parseFloat(formData.compareAtPrice) : undefined,
