@@ -27,7 +27,7 @@ const stats = [
 const features = [
   {
     title: 'Pure Acacia Honey',
-    description: 'Raw, unprocessed honey harvested from acacia forests using traditional methods.',
+    description: 'Processed and hygienically packaged honey in branded containers, available in a range of sizes for every home and business.',
     href: '/products?category=honey',
   },
   {
@@ -132,7 +132,7 @@ export default async function Home() {
     categories && categories.length > 0
       ? categories
       : [
-          { id: 'honey', slug: 'honey', name: 'Pure Honey', description: 'Raw, unprocessed acacia honey.' },
+          { id: 'honey', slug: 'honey', name: 'Pure Honey', description: 'Processed and beautifully packaged honey in branded containers of every size, from pantry jars to bulk.' },
           { id: 'fruits', slug: 'fruits', name: 'Seasonal Fruits', description: 'Fresh, sun-ripened farm fruits.' },
           { id: 'livestock', slug: 'livestock', name: 'Dorper Sheep', description: 'Quality livestock from West Pokot.' },
           { id: 'poultry', slug: 'poultry', name: 'Free-Range Poultry', description: 'Improved Kienyeji poultry.' },
@@ -260,7 +260,7 @@ export default async function Home() {
                 Edau Acacia Honey
               </h2>
               <p className="text-lg text-neutral-600 leading-relaxed mb-8">
-                Raw, unprocessed honey harvested from the acacia forests of West Pokot. Our traditional methods preserve all the natural enzymes, antioxidants, and authentic flavor.
+                Our honey is processed with care and beautifully packaged in branded jars and containers of various sizes — from a 250g jar to a 20-litre jerry can — so you get farm-fresh quality, sealed for freshness and ready for your shelf.
               </p>
 
               {/* Pricing Table */}
@@ -459,6 +459,64 @@ export default async function Home() {
                 </div>
               </Link>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Location / Map */}
+      <section className="py-16 lg:py-24 bg-neutral-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-neutral-950 tracking-tight">
+              Find Us
+            </h2>
+            <p className="text-neutral-500 mt-2">Visit Edau Farm in West Pokot, Kenya</p>
+          </div>
+
+          <div className="grid lg:grid-cols-3 gap-8 items-stretch">
+            <div className="lg:col-span-1 flex flex-col justify-center gap-6">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-primary-50 flex items-center justify-center flex-shrink-0">
+                  <span className="text-2xl">📍</span>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-neutral-900">Edau Farm</h3>
+                  <p className="text-sm text-neutral-500">
+                    West Pokot, Kenya
+                  </p>
+                  <p className="text-xs text-neutral-400 mt-1">
+                    1.3320408, 35.2286904
+                  </p>
+                </div>
+              </div>
+              <p className="text-sm text-neutral-600 leading-relaxed">
+                Come see our sustainable farming in person — tour the apiaries, orchards, and pastures, and taste our honey fresh from the source.
+              </p>
+              <a
+                href="https://www.google.com/maps/dir/?api=1&destination=1.3320408,35.2286904"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center gap-2 bg-neutral-950 hover:bg-neutral-800 text-white px-6 py-3 rounded-full font-medium transition-colors w-fit"
+              >
+                Get Directions
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </a>
+            </div>
+
+            <div className="lg:col-span-2 rounded-2xl overflow-hidden border border-neutral-100 shadow-lg">
+              <iframe
+                title="Edau Farm location"
+                src="https://maps.google.com/maps?q=1.3320408,35.2286904&z=15&output=embed"
+                width="100%"
+                height="420"
+                style={{ border: 0 }}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="w-full h-[320px] lg:h-[420px]"
+              />
+            </div>
           </div>
         </div>
       </section>

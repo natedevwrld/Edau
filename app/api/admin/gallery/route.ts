@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/mongodb';
@@ -131,6 +132,7 @@ export async function POST(req: NextRequest) {
       })),
     ];
     await writeGallery(merged);
+    revalidatePath('/gallery');
     return NextResponse.json({ images: merged, message: `${incoming.length} image(s) added` });
   } catch (error: any) {
     return NextResponse.json({ error: 'Failed to add images', message: error.message }, { status: 500 });
@@ -167,6 +169,7 @@ export async function PUT(req: NextRequest) {
         : item
     );
     await writeGallery(next);
+    revalidatePath('/gallery');
     return NextResponse.json({ images: next, message: 'Image updated' });
   } catch (error: any) {
     return NextResponse.json({ error: 'Failed to update image', message: error.message }, { status: 500 });
@@ -205,6 +208,7 @@ export async function DELETE(req: NextRequest) {
 
     const next = existing.filter((item) => item.id !== id);
     await writeGallery(next);
+    revalidatePath('/gallery');
     return NextResponse.json({ images: next, message: 'Image deleted' });
   } catch (error: any) {
     return NextResponse.json({ error: 'Failed to delete image', message: error.message }, { status: 500 });

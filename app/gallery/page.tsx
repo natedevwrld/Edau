@@ -1,8 +1,11 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import dbConnect from '@/lib/mongodb';
+import Product from '@/lib/models/Product';
 import SiteSettings from '@/lib/models/SiteSettings';
 import PublicGallery from '@/components/PublicGallery';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Gallery - Edau Farm',
@@ -14,6 +17,7 @@ interface GalleryImage {
   alt?: string;
   title?: string;
   description?: string;
+  productId?: string;
 }
 
 async function getGalleryImages(): Promise<GalleryImage[]> {
@@ -37,8 +41,41 @@ async function getGalleryImages(): Promise<GalleryImage[]> {
   }
 }
 
+// Pull product imagery into the gallery so shoppers can jump straight
+// to the product from any photo.
+async function getProductImages(): Promise<GalleryImage[]> {
+  try {
+    await dbConnect();
+    const products = await Product.find({ is_in_stock: true, images: { $exists: true, $ne: [] } })
+      .sort({ created_at: -1 })
+      .limit(40)
+      .lean<any>();
+
+    const result: GalleryImage[] = [];
+    for (const p of products || []) {
+      const images: string[] = Array.isArray(p.images) ? p.images : [];
+      for (const src of images.slice(0, 2)) {
+        if (!src) continue;
+        result.push({
+          src,
+          productId: p.id,
+          title: p.name,
+          alt: p.name,
+        });
+      }
+    }
+    return result;
+  } catch {
+    return [];
+  }
+}
+
 export default async function GalleryPage() {
-  const galleryImages = await getGalleryImages();
+  const [galleryImages, productImages] = await Promise.all([
+    getGalleryImages(),
+    getProductImages(),
+  ]);
+  const images = [...galleryImages, ...productImages];
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
@@ -53,7 +90,7 @@ export default async function GalleryPage() {
 
       {/* Gallery Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <PublicGallery images={galleryImages} />
+        <PublicGallery images={images} />
 
         {/* CTA Section */}
         <div className="mt-12 text-center">
