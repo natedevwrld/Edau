@@ -14,6 +14,8 @@ import {
   FiSave,
   FiImage,
   FiLink,
+  FiChevronDown,
+  FiChevronUp,
 } from 'react-icons/fi';
 
 interface GalleryItem {
@@ -33,6 +35,7 @@ export default function AdminGalleryPage() {
   const [uploading, setUploading] = useState(false);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -118,6 +121,7 @@ export default function AdminGalleryPage() {
         data: { id: item.id, publicId: item.publicId },
       });
       setImages(res.data.images || []);
+      if (editingId === item.id) setEditingId(null);
       toast.success('Deleted');
     } catch (err: any) {
       toast.error(err.response?.data?.error || 'Failed to delete');
@@ -185,71 +189,85 @@ export default function AdminGalleryPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {images.map((img) => (
-              <div key={img.id} className="bg-white rounded-2xl shadow-lg border border-primary-100 overflow-hidden flex flex-col">
-                <div className="relative aspect-[4/3] bg-neutral-100">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={img.src} alt={img.alt || img.title || 'Gallery image'} className="w-full h-full object-cover" />
+            {images.map((img) => {
+              const isEditing = editingId === img.id;
+              return (
+                <div key={img.id} className="bg-white rounded-2xl shadow-lg border border-primary-100 overflow-hidden flex flex-col">
+                  <button
+                    onClick={() => setEditingId(isEditing ? null : img.id)}
+                    className="relative aspect-[4/3] bg-neutral-100 text-left w-full"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={img.src} alt={img.alt || img.title || 'Gallery image'} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity flex items-end p-4">
+                      <span className="text-white text-sm font-medium flex items-center gap-1">
+                        {isEditing ? <FiChevronUp className="w-4 h-4" /> : <FiChevronDown className="w-4 h-4" />}
+                        {isEditing ? 'Close editor' : 'Edit details'}
+                      </span>
+                    </div>
+                  </button>
+                  {isEditing && (
+                    <div className="p-4 flex flex-col gap-3 flex-1">
+                      <div>
+                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Title</label>
+                        <input
+                          value={img.title}
+                          onChange={(e) => updateField(img.id, 'title', e.target.value)}
+                          placeholder="e.g. Acacia Honey Harvest"
+                          className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Alt text</label>
+                        <input
+                          value={img.alt}
+                          onChange={(e) => updateField(img.id, 'alt', e.target.value)}
+                          placeholder="Short description for accessibility"
+                          className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Description</label>
+                        <textarea
+                          value={img.description}
+                          onChange={(e) => updateField(img.id, 'description', e.target.value)}
+                          rows={2}
+                          placeholder="Optional caption shown in the gallery"
+                          className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
+                        />
+                      </div>
+                      <div className="mt-auto flex items-center gap-2 pt-2">
+                        <button
+                          onClick={() => handleSave(img)}
+                          disabled={savingId === img.id}
+                          className="flex-1 inline-flex items-center justify-center gap-1 bg-primary-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50"
+                        >
+                          <FiSave className="w-4 h-4" />
+                          {savingId === img.id ? 'Saving…' : 'Save'}
+                        </button>
+                        <a
+                          href={img.src}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center justify-center gap-1 border border-gray-200 text-gray-600 px-3 py-2 rounded-lg text-sm hover:bg-gray-50"
+                          title="Open original"
+                        >
+                          <FiLink className="w-4 h-4" />
+                        </a>
+                        <button
+                          onClick={() => handleDelete(img)}
+                          disabled={deletingId === img.id}
+                          className="inline-flex items-center justify-center gap-1 border border-red-200 text-red-600 px-3 py-2 rounded-lg text-sm hover:bg-red-50 disabled:opacity-50"
+                          title="Delete"
+                        >
+                          <FiTrash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="p-4 flex flex-col gap-3 flex-1">
-                  <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Title</label>
-                    <input
-                      value={img.title}
-                      onChange={(e) => updateField(img.id, 'title', e.target.value)}
-                      placeholder="e.g. Acacia Honey Harvest"
-                      className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Alt text</label>
-                    <input
-                      value={img.alt}
-                      onChange={(e) => updateField(img.id, 'alt', e.target.value)}
-                      placeholder="Short description for accessibility"
-                      className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Description</label>
-                    <textarea
-                      value={img.description}
-                      onChange={(e) => updateField(img.id, 'description', e.target.value)}
-                      rows={2}
-                      placeholder="Optional caption shown in the gallery"
-                      className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
-                    />
-                  </div>
-                  <div className="mt-auto flex items-center gap-2 pt-2">
-                    <button
-                      onClick={() => handleSave(img)}
-                      disabled={savingId === img.id}
-                      className="flex-1 inline-flex items-center justify-center gap-1 bg-primary-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50"
-                    >
-                      <FiSave className="w-4 h-4" />
-                      {savingId === img.id ? 'Saving…' : 'Save'}
-                    </button>
-                    <a
-                      href={img.src}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center justify-center gap-1 border border-gray-200 text-gray-600 px-3 py-2 rounded-lg text-sm hover:bg-gray-50"
-                      title="Open original"
-                    >
-                      <FiLink className="w-4 h-4" />
-                    </a>
-                    <button
-                      onClick={() => handleDelete(img)}
-                      disabled={deletingId === img.id}
-                      className="inline-flex items-center justify-center gap-1 border border-red-200 text-red-600 px-3 py-2 rounded-lg text-sm hover:bg-red-50 disabled:opacity-50"
-                      title="Delete"
-                    >
-                      <FiTrash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

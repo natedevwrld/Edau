@@ -77,7 +77,7 @@ async function writeGallery(items: any[]) {
   await dbConnect();
   await SiteSettings.findOneAndUpdate(
     { key: KEY },
-    { value: JSON.stringify(items) },
+    { key: KEY, value: JSON.stringify(items), id: KEY },
     { upsert: true, new: true }
   );
 }
