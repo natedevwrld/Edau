@@ -42,7 +42,7 @@ export default function CheckoutPage() {
 
   const [showMpesaCode, setShowMpesaCode] = useState(false);
   // const [mpesaPaybill, setMpesaPaybill] = useState('522533'); // Removed paybill
-  // const [accountNumber] = useState('GADGET2026');
+  // const [accountNumber] = useState('EDAU2026');
   const [paymentPending, setPaymentPending] = useState(false);
   const [stkTransactionId, setStkTransactionId] = useState<string | null>(null);
   const [pollingStopped, setPollingStopped] = useState(false);
@@ -824,27 +824,8 @@ Please confirm this order. Thank you!`;
             {formData.paymentMethod === 'paybill' && (
               <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <h4 className="text-sm font-semibold text-gray-800 mb-3">
-                  BANK DETAILS
+                  CONTACT SUPPORT https://wa.me/254727690165
                 </h4>
-
-                <div className="text-sm text-gray-700 space-y-2">
-                  <p>
-                    <strong>Business Name:</strong> LOOP FOR BUSINESS
-                  </p>
-
-                  <p>
-                    <strong>Paybill Number:</strong> 880100
-                  </p>
-
-                  <p>
-                    <strong>Account Number:</strong> 880200345955
-                  </p>
-
-                  <p>
-                    <strong>Bank:</strong> NCBA Bank 🏦
-                  </p>
-                </div>
-
                 <div className="mt-3 text-xs text-gray-600">
                   <p>
                     Amount to pay: {" "}
