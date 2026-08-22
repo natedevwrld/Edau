@@ -8,6 +8,7 @@ import { usePathname } from 'next/navigation';
 import { FiShoppingCart, FiUser, FiMenu, FiX, FiLogIn, FiSearch } from 'react-icons/fi';
 import { useCartStore } from '@/store/cartStore';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 
 const navLinks = [
   { href: '/products', label: 'Shop' },
@@ -56,9 +57,14 @@ export default function TopBar() {
           <div className="flex items-center justify-between h-16 lg:h-20">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-9 h-9 bg-primary-900 rounded-lg flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
-                <span className="text-white font-bold text-sm">EF</span>
-              </div>
+              <Image
+                src="/logo.png"
+                alt="Edau Farm"
+                width={36}
+                height={36}
+                className="w-9 h-9 rounded-lg object-contain transition-transform duration-300 group-hover:scale-105"
+                priority
+              />
               <span className={`text-lg font-semibold tracking-tight transition-colors ${
                 scrolled ? 'text-neutral-950' : 'text-neutral-900'
               }`}>

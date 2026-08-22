@@ -85,6 +85,13 @@ export function normalizeProductPayload(product: any) {
 }
 
 export function buildGalleryShareUrl(baseUrl: string, imagePath: string | number) {
-  const safePath = typeof imagePath === 'number' ? `?image=${imagePath}` : imagePath;
-  return `${baseUrl}${safePath.startsWith('/') ? safePath : `/${safePath}`}`;
+  if (typeof imagePath === 'number') {
+    return `${baseUrl.replace(/\/$/, '')}/gallery?image=${imagePath}`;
+  }
+
+  if (/^https?:\/\//i.test(imagePath)) {
+    return imagePath;
+  }
+
+  return `${baseUrl.replace(/\/$/, '')}/${imagePath.replace(/^\/+/, '')}`;
 }

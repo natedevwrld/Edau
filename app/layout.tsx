@@ -43,8 +43,8 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://edaufarm.com'),
   manifest: '/manifest.json',
   icons: {
-    icon: '/logo.png',
-    shortcut: '/logo.png',
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
     apple: '/logo.png',
   },
   openGraph: {
@@ -56,9 +56,9 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: 'https://images.unsplash.com/photo-1500651230702-0e2d8a49d4e7?w=1200',
-        width: 1200,
-        height: 630,
+        url: '/metadata.png',
+        width: 1254,
+        height: 1254,
         alt: 'Edau Farm - Sustainable Agriculture in West Pokot, Kenya',
       },
     ],
@@ -67,7 +67,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Edau Farm - West Pokot\'s Premier Sustainable Farm',
     description: 'Premium Acacia honey, fresh seasonal fruits, Dorper sheep, and free-range poultry from West Pokot, Kenya. Order online.',
-    images: ['https://images.unsplash.com/photo-1500651230702-0e2d8a49d4e7?w=1200'],
+    images: ['/metadata.png'],
   },
   robots: {
     index: true,
