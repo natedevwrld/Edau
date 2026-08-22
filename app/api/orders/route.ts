@@ -62,19 +62,21 @@ export async function POST(request: NextRequest) {
     await dbConnect();
 
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id || !session.user.email) {
+    const body = await request.json();
+    const isWhatsAppOrder = body.paymentMethod === 'whatsapp';
+    const guestEmail = String(body.buyerEmail || body.shippingAddress?.email || '').trim().toLowerCase();
+    if ((!session?.user?.id || !session.user.email) && (!isWhatsAppOrder || !guestEmail)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
     const { items, shippingAddress, paymentMethod, mpesaCode, mpesaPhone, buyerName } = body;
 
     if (!items || items.length === 0 || !shippingAddress || !paymentMethod) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const userId = session.user.id;
-    const normalizedBuyerEmail = session.user.email.trim().toLowerCase();
+    const userId = session?.user?.id || `guest:${guestEmail}`;
+    const normalizedBuyerEmail = session?.user?.email?.trim().toLowerCase() || guestEmail;
 
     if (!userId || !normalizedBuyerEmail) {
       return NextResponse.json({ error: 'Buyer ID and email are required' }, { status: 400 });
@@ -117,13 +119,15 @@ export async function POST(request: NextRequest) {
     await order.save();
 
     // In-app notifications (fire-and-forget; helper swallows its own errors).
-    void createNotification({
-      recipient: userId,
-      type: 'order',
-      title: 'Order placed successfully',
-      message: `Your order #${orderNumber} for KSh ${total.toLocaleString()} is being processed.`,
-      link: '/dashboard',
-    });
+    if (session?.user?.id) {
+      void createNotification({
+        recipient: userId,
+        type: 'order',
+        title: 'Order placed successfully',
+        message: `Your order #${orderNumber} for KSh ${total.toLocaleString()} is being processed.`,
+        link: '/dashboard',
+      });
+    }
     void createNotification({
       recipient: 'admin',
       type: 'order',
