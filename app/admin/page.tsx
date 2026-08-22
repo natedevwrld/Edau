@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import {
   FiBarChart,
   FiUsers,
@@ -41,6 +42,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { Analytics } from '@vercel/analytics/react';
+import DashboardLayout from '@/components/DashboardLayout';
 
 interface AdminStats {
   totalUsers: number;
@@ -49,8 +51,15 @@ interface AdminStats {
   totalRevenue: number;
   pendingOrders: number;
   lowStockProducts: number;
+  pendingPaymentTotal: number;
+  pendingPaymentOrders: number;
+  paidOrders: number;
+  averageOrderValue: number;
+  statusBreakdown: Record<string, number>;
+  paymentMethodBreakdown: Record<string, number>;
   recentOrders: Array<{
     _id: string;
+    order_number?: string;
     customerName: string;
     total: number;
     status: string;
@@ -80,16 +89,22 @@ interface DashboardCard {
   color: string;
 }
 
+const navigationTabIds = ['overview', 'products', 'users', 'analytics', 'reviews', 'finance', 'settings'];
+
 export default function AdminDashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const requestedTab = searchParams.get('tab');
+    if (requestedTab && navigationTabIds.includes(requestedTab)) setActiveTab(requestedTab);
+  }, [searchParams]);
 
   // Notifications state
   const [notificationPrefs, setNotificationPrefs] = useState({
@@ -196,19 +211,26 @@ export default function AdminDashboard() {
   const generateFinancialReport = async () => {
     try {
       setGeneratingReport(true);
-      const response = await axios.post('/api/admin/finance/report', {
-        type: 'monthly',
-        format: 'pdf'
-      });
-      
-      // Create download link
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      if (!stats) return;
+      const rows = [
+        ['Metric', 'Value'],
+        ['Total revenue', String(stats.totalRevenue)],
+        ['Total orders', String(stats.totalOrders)],
+        ['Paid orders', String(stats.paidOrders)],
+        ['Pending payment orders', String(stats.pendingPaymentOrders)],
+        ['Pending payment value', String(stats.pendingPaymentTotal)],
+        ['Average order value', String(stats.averageOrderValue)],
+        ...Object.entries(stats.paymentMethodBreakdown).map(([method, count]) => [`Payment method: ${method}`, String(count)]),
+      ];
+      const csv = rows.map((row) => row.map((value) => `"${value.replace(/"/g, '""')}"`).join(',')).join('\n');
+      const url = window.URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `financial-report-${new Date().toISOString().split('T')[0]}.pdf`);
+      link.setAttribute('download', `financial-report-${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url);
       
       toast.success('Financial report generated successfully');
     } catch (error) {
@@ -219,8 +241,8 @@ export default function AdminDashboard() {
   };
 
   const managePaymentSettings = () => {
-    // Navigate to payment settings or open modal
-    toast.success('Payment settings management coming soon');
+    setActiveTab('orders');
+    toast.success('Review payment status from Order Management.');
   };
 
   // Settings functions
@@ -371,140 +393,8 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-green-50 flex">
-      {/* Mobile Sidebar Overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside className={`fixed lg:static top-0 left-0 h-screen bg-white border-r border-primary-100 shadow-2xl transition-all duration-300 z-50 flex flex-col ${
-        sidebarCollapsed ? 'lg:w-20' : 'w-72'
-      } ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-      }`}>
-
-        {/* Sidebar Header */}
-          <div className={`p-6 border-b border-primary-100 ${sidebarCollapsed ? 'lg:p-3' : ''}`}>
-          <div className={`flex items-center ${sidebarCollapsed ? 'lg:justify-center' : 'justify-between'}`}>
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-primary-600 to-primary-700 rounded-xl flex items-center justify-center">
-                <FiShield className="w-6 h-6 text-white" />
-              </div>
-              <div className={sidebarCollapsed ? 'lg:hidden' : ''}>
-                <h2 className="text-xl font-bold text-primary-800">Admin Panel</h2>
-                <p className="text-sm text-primary-600">Edau Farm</p>
-              </div>
-            </div>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-2 rounded-lg hover:bg-primary-50 transition-colors"
-            >
-              <FiX className="w-5 h-5 text-primary-600" />
-            </button>
-            <button
-              onClick={() => setSidebarCollapsed((collapsed) => !collapsed)}
-              className="hidden lg:block rounded-lg p-2 text-primary-600 transition-colors hover:bg-primary-50"
-              aria-label={sidebarCollapsed ? 'Expand admin sidebar' : 'Collapse admin sidebar'}
-              title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            >
-              {sidebarCollapsed ? <FiChevronRight className="h-5 w-5" /> : <FiChevronLeft className="h-5 w-5" />}
-            </button>
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <nav className={`flex-1 p-4 ${sidebarCollapsed ? 'lg:px-2' : ''}`}>
-          <ul className="space-y-2">
-            {navigationItems.map((item) => (
-              <li key={item.id}>
-                {item.href ? (
-                  <Link
-                    href={item.href}
-                    className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 text-gray-700 hover:bg-primary-50 hover:text-primary-800"
-                    onClick={() => setSidebarOpen(false)}
-                  >
-                    <item.icon className="w-5 h-5" />
-                    <span className={sidebarCollapsed ? 'lg:hidden' : 'font-medium'}>{item.label}</span>
-                  </Link>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setActiveTab(item.id);
-                      setSidebarOpen(false);
-                    }}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                      activeTab === item.id
-                        ? 'bg-primary-600 text-white shadow-lg'
-                        : 'text-gray-700 hover:bg-primary-50 hover:text-primary-800'
-                    }`}
-                  >
-                    <item.icon className="w-5 h-5" />
-                    <span className={sidebarCollapsed ? 'lg:hidden' : 'font-medium'}>{item.label}</span>
-                  </button>
-                )}
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        {/* User Info */}
-        <div className={`p-4 border-t border-primary-100 ${sidebarCollapsed ? 'lg:px-2' : ''}`}>
-          <div className={`flex items-center space-x-3 p-3 bg-primary-50 rounded-xl ${sidebarCollapsed ? 'lg:justify-center lg:p-2' : ''}`}>
-            <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-primary-600 rounded-full flex items-center justify-center">
-              <span className="text-white font-semibold text-sm">
-                {session?.user?.name?.charAt(0)?.toUpperCase() || 'A'}
-              </span>
-            </div>
-            <div className={`flex-1 min-w-0 ${sidebarCollapsed ? 'lg:hidden' : ''}`}>
-              <p className="text-sm font-medium text-primary-800 truncate">
-                {session?.user?.name || 'Admin'}
-              </p>
-              <p className="text-xs text-primary-600">Administrator</p>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 lg:ml-0">
-        {/* Header */}
-        <header className="bg-white border-b border-primary-100 px-4 lg:px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-2 rounded-lg hover:bg-primary-50 transition-colors"
-              >
-                <FiMenu className="w-5 h-5 text-primary-600" />
-              </button>
-              <div>
-                <h1 className="text-xl lg:text-2xl font-bold text-primary-800">
-                  {navigationItems.find(item => item.id === activeTab)?.label || 'Dashboard'}
-                </h1>
-                <p className="text-sm text-primary-600">
-                  Welcome back, {session?.user?.name?.split(' ')[0] || 'Admin'}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-3">
-              <button className="p-2 rounded-lg hover:bg-primary-50 transition-colors relative">
-                <FiBell className="w-5 h-5 text-primary-600" />
-                <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
-              <button className="p-2 rounded-lg hover:bg-primary-50 transition-colors">
-                <FiSettings className="w-5 h-5 text-primary-600" />
-              </button>
-            </div>
-          </div>
-        </header>
-
-        {/* Content */}
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">
+    <DashboardLayout role="admin">
+      <main className="p-4 lg:p-6">
           {activeTab === 'overview' && (
             <div className="space-y-6">
               {/* Stats Cards */}
@@ -788,14 +678,48 @@ export default function AdminDashboard() {
           {activeTab === 'analytics' && (
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-primary-800">Analytics & Insights</h2>
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                {[
+                  { label: 'Average order value', value: formatPrice(stats?.averageOrderValue || 0), Icon: FiDollarSign },
+                  { label: 'Orders completed', value: String(stats?.statusBreakdown?.delivered || 0), Icon: FiCheckCircle },
+                  { label: 'Paid orders', value: String(stats?.paidOrders || 0), Icon: FiBarChart },
+                ].map(({ label, value, Icon }) => (
+                  <div key={String(label)} className="rounded-xl border border-primary-100 bg-white p-6 shadow-lg">
+                    <Icon className="mb-4 h-8 w-8 text-primary-600" />
+                    <p className="text-sm text-gray-600">{label}</p>
+                    <p className="mt-1 text-2xl font-bold text-primary-800">{value}</p>
+                  </div>
+                ))}
+              </div>
 
-              <div className="bg-white rounded-2xl shadow-lg border border-primary-100 p-8 text-center">
-                <FiBarChart className="w-16 h-16 mx-auto mb-4 text-primary-400" />
-                <h3 className="text-xl font-semibold text-primary-800 mb-2">Advanced Analytics</h3>
-                <p className="text-gray-600 mb-6">Detailed insights into sales, user behavior, and performance metrics</p>
-                <button className="bg-primary-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-primary-700 transition-colors">
-                  View Analytics →
-                </button>
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <div className="rounded-xl border border-primary-100 bg-white p-6 shadow-lg">
+                  <h3 className="mb-5 text-lg font-semibold text-primary-800">Revenue, last 12 months</h3>
+                  <div className="flex h-48 items-end gap-2 border-b border-gray-200 pb-2">
+                    {(stats?.monthlyRevenue || []).map((amount, index) => {
+                      const maximum = Math.max(...(stats?.monthlyRevenue || [1]), 1);
+                      return <div key={index} className="group flex h-full flex-1 items-end" title={`${formatPrice(amount)} month ${index + 1}`}><div className="w-full rounded-t bg-primary-500 transition hover:bg-primary-700" style={{ height: `${Math.max((amount / maximum) * 100, amount ? 4 : 1)}%` }} /></div>;
+                    })}
+                  </div>
+                  <div className="mt-2 flex justify-between text-xs text-gray-500"><span>12 months ago</span><span>Current month</span></div>
+                </div>
+
+                <div className="rounded-xl border border-primary-100 bg-white p-6 shadow-lg">
+                  <h3 className="mb-5 text-lg font-semibold text-primary-800">Order status</h3>
+                  <div className="space-y-3">
+                    {Object.entries(stats?.statusBreakdown || {}).map(([statusName, count]) => {
+                      const percentage = stats?.totalOrders ? (count / stats.totalOrders) * 100 : 0;
+                      return <div key={statusName}><div className="mb-1 flex justify-between text-sm"><span className="capitalize text-gray-700">{statusName}</span><span className="font-semibold text-gray-900">{count}</span></div><div className="h-2 rounded-full bg-gray-100"><div className="h-2 rounded-full bg-primary-600" style={{ width: `${percentage}%` }} /></div></div>;
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-primary-100 bg-white p-6 shadow-lg">
+                <h3 className="mb-4 text-lg font-semibold text-primary-800">Payment methods</h3>
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                  {Object.entries(stats?.paymentMethodBreakdown || {}).map(([method, count]) => <div key={method} className="rounded-lg bg-primary-50 p-4"><p className="text-sm capitalize text-gray-600">{method}</p><p className="mt-1 text-2xl font-bold text-primary-800">{count}</p></div>)}
+                </div>
               </div>
             </div>
           )}
@@ -928,14 +852,13 @@ export default function AdminDashboard() {
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Monthly Revenue</p>
-                      <p className="text-2xl font-bold text-primary-800">{formatPrice(stats?.totalRevenue || 0)}</p>
+                      <p className="text-2xl font-bold text-primary-800">{formatPrice(stats?.monthlyRevenue?.[11] || 0)}</p>
                     </div>
                     <FiDollarSign className="w-8 h-8 text-green-500" />
                   </div>
                   <div className="flex items-center text-sm">
                     <FiTrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                    <span className="text-green-600 font-medium">+12.5%</span>
-                    <span className="text-gray-500 ml-1">from last month</span>
+                    <span className="text-gray-500 ml-1">current month</span>
                   </div>
                 </div>
 
@@ -943,12 +866,12 @@ export default function AdminDashboard() {
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Pending Payments</p>
-                      <p className="text-2xl font-bold text-primary-800">{formatPrice(0)}</p>
+                      <p className="text-2xl font-bold text-primary-800">{formatPrice(stats?.pendingPaymentTotal || 0)}</p>
                     </div>
                     <FiClock className="w-8 h-8 text-yellow-500" />
                   </div>
                   <div className="flex items-center text-sm">
-                    <span className="text-gray-500">No pending payments</span>
+                    <span className="text-gray-500">{stats?.pendingPaymentOrders || 0} order(s) awaiting payment</span>
                   </div>
                 </div>
 
@@ -1003,7 +926,7 @@ export default function AdminDashboard() {
                           <FiShoppingBag className="w-5 h-5 text-primary-600" />
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900">Order #{order._id.slice(-8)}</p>
+                          <p className="font-medium text-gray-900">Order #{order.order_number || order._id.slice(-8)}</p>
                           <p className="text-sm text-gray-500">{order.customerName}</p>
                         </div>
                       </div>
@@ -1275,8 +1198,7 @@ export default function AdminDashboard() {
             </div>
           )}
         </main>
-      </div>
       <Analytics />
-    </div>
+    </DashboardLayout>
   );
 }

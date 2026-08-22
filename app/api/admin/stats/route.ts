@@ -39,6 +39,18 @@ export async function GET(req: NextRequest) {
 
     const orders = await Order.find({}).select('total created_at').lean();
     const totalRevenue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
+    const pendingPaymentOrders = orders.filter((o) => o.payment_status === 'pending');
+    const paidOrders = orders.filter((o) => o.payment_status === 'paid');
+    const statusBreakdown = orders.reduce<Record<string, number>>((result, order) => {
+      const status = order.status || 'pending';
+      result[status] = (result[status] || 0) + 1;
+      return result;
+    }, {});
+    const paymentMethodBreakdown = orders.reduce<Record<string, number>>((result, order) => {
+      const method = order.payment_method || 'unknown';
+      result[method] = (result[method] || 0) + 1;
+      return result;
+    }, {});
 
     const monthlyRevenue: number[] = [];
     const now = new Date();
@@ -77,6 +89,12 @@ export async function GET(req: NextRequest) {
       totalUsers: totalUsers || 0,
       totalOrders: totalOrders || 0,
       totalRevenue: Math.round(totalRevenue * 100) / 100,
+      pendingPaymentTotal: pendingPaymentOrders.reduce((sum, order) => sum + (order.total || 0), 0),
+      pendingPaymentOrders: pendingPaymentOrders.length,
+      paidOrders: paidOrders.length,
+      averageOrderValue: totalOrders ? Math.round((totalRevenue / totalOrders) * 100) / 100 : 0,
+      statusBreakdown,
+      paymentMethodBreakdown,
       pendingOrders: pendingOrders || 0,
       lowStockProducts: lowStockProducts || 0,
       recentOrders: (recentOrders || []).map((o) => ({

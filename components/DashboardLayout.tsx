@@ -2,9 +2,9 @@
 
 import { useState, ReactNode } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { LayoutDashboard, Package, Users, ShoppingCart, ChartBar as BarChart3, Settings, Menu, X, LogOut, Hop as Home, Store, ChevronRight, ChevronLeft } from 'lucide-react';
+import { LayoutDashboard, Package, Users, ShoppingCart, ChartBar as BarChart3, Settings, Menu, X, LogOut, Hop as Home, Store, ChevronRight, ChevronLeft, Image, Star, Sparkles, Activity, RotateCcw, WalletCards } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 
 interface DashboardLayoutProps {
@@ -22,7 +22,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   {
     label: 'Dashboard',
-    href: '/dashboard',
+    href: '/admin',
     icon: LayoutDashboard,
     roles: ['admin'],
   },
@@ -46,16 +46,27 @@ const navItems: NavItem[] = [
   },
   {
     label: 'Analytics',
-    href: '/admin/stats',
+    href: '/admin?tab=analytics',
     icon: BarChart3,
     roles: ['admin'],
   },
+  { label: 'Finance', href: '/admin?tab=finance', icon: Settings, roles: ['admin'] },
+  { label: 'Point of Sale', href: '/admin/pos', icon: ShoppingCart, roles: ['admin'] },
+  { label: 'Farm Visits', href: '/admin/farm-visits', icon: Store, roles: ['admin'] },
+  { label: 'Gallery', href: '/admin/gallery', icon: Image, roles: ['admin'] },
+  { label: 'Reviews', href: '/admin/reviews', icon: Star, roles: ['admin'] },
+  { label: 'AI Captions', href: '/admin/ai-captions', icon: Sparkles, roles: ['admin'] },
+  { label: 'AI Usage', href: '/admin/ai-usage', icon: Activity, roles: ['admin'] },
+  { label: 'Buybacks', href: '/admin/buybacks', icon: RotateCcw, roles: ['admin'] },
+  { label: 'Withdrawals', href: '/admin/withdrawals', icon: WalletCards, roles: ['admin'] },
+  { label: 'Settings', href: '/admin?tab=settings', icon: Settings, roles: ['admin'] },
 ];
 
 export default function DashboardLayout({ children, role }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
 
   const filteredNavItems = navItems.filter(item => item.roles.includes(role));
@@ -162,7 +173,9 @@ export default function DashboardLayout({ children, role }: DashboardLayoutProps
             </p>
             {filteredNavItems.map((item) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+              const [itemPath, itemQuery] = item.href.split('?');
+              const isActive = pathname === itemPath && (!itemQuery || searchParams.toString() === itemQuery)
+                || pathname.startsWith(itemPath + '/');
 
               return (
                 <Link
