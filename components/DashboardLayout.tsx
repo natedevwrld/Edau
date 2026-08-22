@@ -119,7 +119,7 @@ export default function DashboardLayout({ children, role }: DashboardLayoutProps
       >
         <div className="flex flex-col h-full">
           {/* Sidebar Header */}
-          <div className="relative px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-primary-50 to-orange-50">
+          <div className={`relative px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-primary-50 to-orange-50 ${sidebarCollapsed ? 'lg:px-2' : ''}`}>
             <div className={`flex items-center ${sidebarCollapsed ? 'lg:justify-center' : 'justify-between'}`}>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-500/30">
@@ -167,7 +167,7 @@ export default function DashboardLayout({ children, role }: DashboardLayoutProps
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          <nav className={`flex-1 p-4 space-y-1 overflow-y-auto ${sidebarCollapsed ? 'lg:px-2' : ''}`}>
             <p className={`text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-3 ${sidebarCollapsed ? 'lg:hidden' : ''}`}>
               Menu
             </p>
@@ -184,13 +184,14 @@ export default function DashboardLayout({ children, role }: DashboardLayoutProps
                   onClick={() => setSidebarOpen(false)}
                   className={`
                     group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
+                    ${sidebarCollapsed ? 'lg:justify-center lg:px-2' : ''}
                     ${isActive 
                       ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/30 scale-[1.02]' 
                       : 'text-gray-700 hover:bg-gray-100 hover:scale-[1.01]'
                     }
                   `}
                 >
-                  <Icon className={`w-5 h-5 transition-transform ${isActive ? '' : 'group-hover:scale-110'}`} />
+                  <Icon className={`w-5 h-5 shrink-0 transition-transform ${isActive ? '' : 'group-hover:scale-110'}`} />
                     <span className={`font-medium flex-1 ${sidebarCollapsed ? 'lg:hidden' : ''}`}>{item.label}</span>
                   {isActive && <ChevronRight className={`w-4 h-4 ${sidebarCollapsed ? 'lg:hidden' : ''}`} />}
                 </Link>
@@ -199,21 +200,21 @@ export default function DashboardLayout({ children, role }: DashboardLayoutProps
           </nav>
 
           {/* Sidebar Footer */}
-          <div className="p-4 border-t border-gray-200 bg-gray-50/50 space-y-2">
+          <div className={`p-4 border-t border-gray-200 bg-gray-50/50 space-y-2 ${sidebarCollapsed ? 'lg:px-2' : ''}`}>
             <Link
               href="/"
               onClick={() => setSidebarOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white hover:shadow-sm transition-all duration-200 group"
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white hover:shadow-sm transition-all duration-200 group ${sidebarCollapsed ? 'lg:justify-center lg:px-2' : ''}`}
             >
-              <Home className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              <span className="font-medium">Back to Store</span>
+              <Home className="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" />
+              <span className={`font-medium ${sidebarCollapsed ? 'lg:hidden' : ''}`}>Back to Store</span>
             </Link>
             <button
               onClick={handleSignOut}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 hover:shadow-sm transition-all duration-200 group"
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 hover:shadow-sm transition-all duration-200 group ${sidebarCollapsed ? 'lg:justify-center lg:px-2' : ''}`}
             >
-              <LogOut className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              <span className="font-medium">Sign Out</span>
+              <LogOut className="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" />
+              <span className={`font-medium ${sidebarCollapsed ? 'lg:hidden' : ''}`}>Sign Out</span>
             </button>
           </div>
         </div>
