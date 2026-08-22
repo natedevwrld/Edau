@@ -9,6 +9,7 @@ import { FiShoppingCart, FiUser, FiMenu, FiX, FiLogIn, FiSearch } from 'react-ic
 import { useCartStore } from '@/store/cartStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
+import { FaFacebook } from 'react-icons/fa';
 
 const navLinks = [
   { href: '/products', label: 'Shop' },
@@ -17,6 +18,8 @@ const navLinks = [
   { href: '/farm-visits', label: 'Visit' },
   { href: '/contact', label: 'Contact' },
 ];
+
+const facebookUrl = 'https://www.facebook.com/share/1CfKA9PZjD/';
 
 export default function TopBar() {
   const { data: session } = useSession();
@@ -170,6 +173,21 @@ export default function TopBar() {
                 Shop Now
               </Link>
 
+              <a
+                href={facebookUrl}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Edau Farm on Facebook"
+                title="Edau Farm on Facebook"
+                className={`hidden sm:flex p-2.5 rounded-full transition-all ${
+                  scrolled
+                    ? 'hover:bg-neutral-100 text-[#1877F2]'
+                    : 'hover:bg-white/50 text-[#1877F2]'
+                }`}
+              >
+                <FaFacebook className="w-5 h-5" aria-hidden="true" />
+              </a>
+
               {/* Mobile menu button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -252,6 +270,16 @@ export default function TopBar() {
                       </motion.div>
                     ))}
                   </div>
+                  <a
+                    href={facebookUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="mt-4 flex items-center gap-3 rounded-xl px-4 py-3 text-base font-medium text-[#1877F2] hover:bg-blue-50"
+                  >
+                    <FaFacebook className="w-5 h-5" aria-hidden="true" />
+                    Facebook
+                  </a>
                 </nav>
                 <div className="p-4 border-t border-neutral-100">
                   <Link

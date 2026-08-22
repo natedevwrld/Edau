@@ -2,6 +2,7 @@
 
 import { cn } from '@/lib/utils';
 import { FiPackage } from 'react-icons/fi';
+import Image from 'next/image';
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
@@ -44,9 +45,13 @@ export default function LoadingSpinner({
           <div className="relative mb-6">
             <div className="relative flex items-center justify-center">
               {branded ? (
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center shadow-xl animate-pulse">
-                  <span className="text-4xl">🌾</span>
-                </div>
+                <Image
+                  src="/metadata.png"
+                  alt="Edau Farm"
+                  width={80}
+                  height={80}
+                  className="w-20 h-20 rounded-2xl object-contain shadow-xl animate-pulse"
+                />
               ) : (
                 <div className="w-16 h-16 relative">
                   <div className="absolute inset-0 border-4 border-primary-200 rounded-full" />

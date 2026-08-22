@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { MessageCircle, MessageSquareText, X } from 'lucide-react';
+import { Headset, MessageSquareText, X } from 'lucide-react';
+import { FaWhatsapp } from 'react-icons/fa';
 import { getContactLink, getWhatsAppLink } from '@/lib/whatsapp';
 
 export default function SupportFloatingButtons() {
@@ -25,7 +26,7 @@ export default function SupportFloatingButtons() {
             rel="noreferrer"
             className="flex items-center gap-2 rounded-xl bg-green-600 px-4 py-3 text-sm font-medium text-white hover:bg-green-700"
           >
-            <MessageCircle className="h-4 w-4" />
+            <FaWhatsapp className="h-5 w-5" aria-hidden="true" />
             Chat on WhatsApp
           </a>
           <Link
@@ -44,7 +45,7 @@ export default function SupportFloatingButtons() {
         className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-600 text-white shadow-lg transition hover:bg-primary-700"
         aria-label="Open support options"
       >
-        {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
+        {open ? <X className="h-6 w-6" /> : <Headset className="h-6 w-6" />}
       </button>
     </div>
   );

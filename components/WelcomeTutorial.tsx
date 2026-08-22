@@ -5,9 +5,11 @@ import { FiX, FiChevronRight, FiSmartphone, FiShoppingCart, FiPhone, FiMail, FiD
 
 interface WelcomeTutorialProps {
   onClose: () => void;
+  onInstall?: () => Promise<void>;
+  canInstall?: boolean;
 }
 
-export default function WelcomeTutorial({ onClose }: WelcomeTutorialProps) {
+export default function WelcomeTutorial({ onClose, onInstall, canInstall = false }: WelcomeTutorialProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
   const [displayedText, setDisplayedText] = useState('');
@@ -267,6 +269,16 @@ export default function WelcomeTutorial({ onClose }: WelcomeTutorialProps) {
 
           {/* Installation Steps */}
           {renderInstallationSteps()}
+
+          {canInstall && (currentStep === 1 || currentStep === 2) && (
+            <button
+              type="button"
+              onClick={onInstall}
+              className="w-full rounded-xl bg-green-600 px-4 py-3 font-medium text-white transition-colors hover:bg-green-700"
+            >
+              Install Edau Farm
+            </button>
+          )}
 
           {/* Special content for contact step */}
           {currentStep === 4 && (

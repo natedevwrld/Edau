@@ -5,8 +5,20 @@ import WelcomeTutorial from '@/components/WelcomeTutorial';
 
 export default function WelcomeTutorialWrapper() {
   const [showTutorial, setShowTutorial] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => undefined);
+    }
+
+    const handleInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPrompt(event as BeforeInstallPromptEvent);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleInstallPrompt);
+
     // Check if user has been guided before
     const hasBeenGuided = localStorage.getItem('edaufarm-tutorial-guided');
     const completedDate = localStorage.getItem('edaufarm-tutorial-completed-date');
@@ -17,7 +29,10 @@ export default function WelcomeTutorialWrapper() {
       const timer = setTimeout(() => {
         setShowTutorial(true);
       }, 1000);
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
+      };
     }
 
     // Optional: Show tutorial again after 90 days for users who skipped
@@ -30,6 +45,7 @@ export default function WelcomeTutorialWrapper() {
         setShowTutorial(true);
       }
     }
+    return () => window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
   }, []);
 
   const handleCloseTutorial = () => {
@@ -38,5 +54,22 @@ export default function WelcomeTutorialWrapper() {
 
   if (!showTutorial) return null;
 
-  return <WelcomeTutorial onClose={handleCloseTutorial} />;
+  const handleInstall = async () => {
+    if (!installPrompt) return;
+    await installPrompt.prompt();
+    setInstallPrompt(null);
+  };
+
+  return (
+    <WelcomeTutorial
+      onClose={handleCloseTutorial}
+      onInstall={handleInstall}
+      canInstall={Boolean(installPrompt)}
+    />
+  );
+}
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
 }

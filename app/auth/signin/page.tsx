@@ -4,6 +4,7 @@ import { useState, Suspense, useEffect } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { FiLogIn } from 'react-icons/fi';
 
@@ -67,9 +68,13 @@ function SignInForm() {
         {/* Logo/Header */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-3 mb-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-2xl">EF</span>
-            </div>
+            <Image
+              src="/logo.png"
+              alt="Edau Farm"
+              width={56}
+              height={56}
+              className="w-14 h-14 rounded-xl object-contain shadow-lg"
+            />
           </Link>
           <h1 className="text-2xl font-bold text-primary-700">Edau Farm</h1>
           <p className="text-gray-500 text-sm mt-1">Welcome back</p>
@@ -185,9 +190,13 @@ export default function SignInPage() {
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-green-50">
         <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl mx-auto flex items-center justify-center shadow-lg animate-pulse">
-            <span className="text-white font-bold text-xl">EF</span>
-          </div>
+          <Image
+            src="/logo.png"
+            alt="Edau Farm"
+            width={64}
+            height={64}
+            className="w-16 h-16 rounded-xl object-contain shadow-lg animate-pulse"
+          />
         </div>
       </div>
     }>

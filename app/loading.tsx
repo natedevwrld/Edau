@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 export default function Loading() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-green-50 flex items-center justify-center">
@@ -8,9 +10,14 @@ export default function Loading() {
             <div className="w-24 h-24 bg-primary-200 rounded-2xl animate-pulse" />
           </div>
           <div className="relative">
-            <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl mx-auto flex items-center justify-center shadow-lg">
-              <span className="text-white text-xl font-bold">EF</span>
-            </div>
+            <Image
+              src="/metadata.png"
+              alt="Edau Farm"
+              width={96}
+              height={96}
+              className="w-24 h-24 rounded-xl object-contain mx-auto shadow-lg animate-pulse"
+              priority
+            />
           </div>
         </div>
 

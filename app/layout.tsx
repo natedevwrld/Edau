@@ -12,6 +12,7 @@ import { NotificationProvider } from '@/contexts/NotificationContext';
 import { Analytics } from '@vercel/analytics/react';
 import { CurrencyProvider } from '@/contexts/CurrencyContext';
 import SupportFloatingButtons from '@/components/SupportFloatingButtons';
+import WelcomeTutorialWrapper from '@/components/WelcomeTutorialWrapper';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -105,6 +106,7 @@ export default function RootLayout({
                 <Footer />
                 <BottomNav />
                 <SupportFloatingButtons />
+                <WelcomeTutorialWrapper />
               </div>
               <Toaster position="top-right" />
               <Analytics />
