@@ -27,7 +27,8 @@ import {
   FiDownload,
   FiPhone,
   FiMail,
-  FiMapPin
+  FiMapPin,
+  FiPrinter,
 } from 'react-icons/fi';
 
 interface Order {
@@ -116,6 +117,11 @@ export default function AdminOrdersPage() {
     } finally {
       setUpdating(false);
     }
+  };
+
+  const printReceipt = (orderId: string) => {
+    const receiptWindow = window.open(`/api/admin/orders/${orderId}/receipt`, '_blank', 'noopener,noreferrer');
+    if (!receiptWindow) toast.error('Please allow pop-ups to print the receipt.');
   };
 
   const filteredOrders = orders.filter(order => {
@@ -314,6 +320,14 @@ export default function AdminOrdersPage() {
                         <FiEye className="w-4 h-4" />
                         View
                       </button>
+                      <button
+                        onClick={() => printReceipt(order._id)}
+                        className="ml-2 inline-flex items-center gap-1.5 rounded-xl border border-primary-200 px-3 py-2 text-sm font-medium text-primary-700 transition-all hover:bg-primary-50"
+                        title="Print A5 receipt"
+                      >
+                        <FiPrinter className="h-4 w-4" />
+                        Print
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -352,6 +366,13 @@ export default function AdminOrdersPage() {
                 className="p-2 hover:bg-white/20 rounded-full transition-colors"
               >
                 <FiX className="w-6 h-6" />
+              </button>
+              <button
+                onClick={() => printReceipt(selectedOrder._id)}
+                className="ml-auto mr-2 inline-flex items-center gap-2 rounded-lg bg-white/15 px-3 py-2 text-sm font-medium hover:bg-white/25"
+                title="Print A5 receipt"
+              >
+                <FiPrinter className="h-4 w-4" /> Print receipt
               </button>
             </div>
 

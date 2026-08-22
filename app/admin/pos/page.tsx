@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { ChevronLeft, Minus, Plus, Search, ShoppingCart, Trash2 } from 'lucide-react';
+import { ChevronLeft, Minus, Plus, Search, ShoppingCart, Trash2, Printer } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { formatPrice } from '@/lib/utils';
@@ -23,6 +23,7 @@ export default function AdminPosPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [lastOrderId, setLastOrderId] = useState<string | null>(null);
   const [customer, setCustomer] = useState({ name: '', email: '', phone: '', address: '', city: '', county: '', paymentMethod: 'cash', paymentReference: '', notes: '' });
 
   useEffect(() => {
@@ -69,6 +70,7 @@ export default function AdminPosPage() {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Failed to save POS order.');
       toast.success(`Order #${result.order.order_number} saved.`);
+      setLastOrderId(result.order.id);
       setCart([]);
       setCustomer({ name: '', email: '', phone: '', address: '', city: '', county: '', paymentMethod: 'cash', paymentReference: '', notes: '' });
     } catch (error: any) {
@@ -114,6 +116,15 @@ export default function AdminPosPage() {
           <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold"><ShoppingCart className="h-5 w-5" /> Current order</h2>
           <div className="mb-5 space-y-2">{cart.length === 0 ? <p className="text-sm text-gray-500">Select products to begin.</p> : cart.map((item) => <div key={item.id} className="flex items-center gap-2 border-b pb-2"><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{item.name}</p><p className="text-xs text-gray-500">{formatPrice(item.price)} each</p></div><button type="button" onClick={() => changeQuantity(item.id, -1)} className="rounded p-1 hover:bg-gray-100" aria-label={`Remove one ${item.name}`}><Minus className="h-4 w-4" /></button><span className="w-5 text-center text-sm">{item.orderedQuantity}</span><button type="button" onClick={() => changeQuantity(item.id, 1)} className="rounded p-1 hover:bg-gray-100" aria-label={`Add one ${item.name}`}><Plus className="h-4 w-4" /></button><button type="button" onClick={() => setCart((items) => items.filter((line) => line.id !== item.id))} className="rounded p-1 text-red-600 hover:bg-red-50" aria-label={`Remove ${item.name}`}><Trash2 className="h-4 w-4" /></button></div>)}</div>
           <div className="mb-5 border-b pb-4 text-right text-lg font-bold">Total: {formatPrice(total)}</div>
+          {lastOrderId && (
+            <button
+              type="button"
+              onClick={() => window.open(`/api/admin/orders/${lastOrderId}/receipt`, '_blank', 'noopener,noreferrer')}
+              className="mb-4 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-primary-200 px-4 py-2 font-semibold text-primary-700 hover:bg-primary-50"
+            >
+              <Printer className="h-4 w-4" /> Print last receipt
+            </button>
+          )}
           <div className="space-y-3">{([['name', 'Customer name'], ['email', 'Customer email'], ['phone', 'Customer phone'], ['address', 'Address'], ['city', 'City'], ['county', 'County']] as const).map(([field, label]) => <input key={field} type={field === 'email' ? 'email' : field === 'phone' ? 'tel' : 'text'} required={field === 'name' || field === 'email' || field === 'phone'} value={customer[field]} onChange={(event) => setCustomer({ ...customer, [field]: event.target.value })} placeholder={label} className="w-full rounded-lg border border-gray-300 px-3 py-2" />)}
             <select value={customer.paymentMethod} onChange={(event) => setCustomer({ ...customer, paymentMethod: event.target.value })} className="w-full rounded-lg border border-gray-300 px-3 py-2"><option value="cash">Cash (paid)</option><option value="mpesa">M-Pesa</option><option value="paybill">Paybill</option></select>
             <input value={customer.paymentReference} onChange={(event) => setCustomer({ ...customer, paymentReference: event.target.value })} placeholder="Payment reference (optional)" className="w-full rounded-lg border border-gray-300 px-3 py-2" />
