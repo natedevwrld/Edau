@@ -50,6 +50,8 @@ export default function WelcomeTutorialWrapper() {
 
   const handleCloseTutorial = () => {
     setShowTutorial(false);
+    localStorage.setItem('edaufarm-tutorial-guided', 'true');
+    localStorage.setItem('edaufarm-tutorial-completed-date', new Date().toISOString());
   };
 
   if (!showTutorial) return null;

@@ -160,7 +160,7 @@ export default function SignUpPage() {
                 value={formData.phone}
                 onChange={handleChange}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-gray-50 focus:bg-white"
-                placeholder="+254 700 000 000"
+                  placeholder="+254 727 690 165"
               />
             </div>
 

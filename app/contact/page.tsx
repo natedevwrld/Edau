@@ -56,7 +56,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900">Phone</h3>
-                  <p className="text-gray-600">+254 700 000 000</p>
+                  <p className="text-gray-600">+254 727 690 165</p>
                   <p className="text-sm text-gray-500">Available on WhatsApp</p>
                 </div>
               </div>
@@ -158,7 +158,7 @@ export default function ContactPage() {
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-500"
-                        placeholder="+254 700 000 000"
+                        placeholder="+254 727 690 165"
                       />
                     </div>
                   </div>

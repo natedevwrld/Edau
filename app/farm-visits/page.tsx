@@ -196,7 +196,7 @@ export default function FarmVisitsPage() {
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-500"
-                  placeholder="+254 700 000 000"
+                  placeholder="+254 727 690 165"
                 />
               </div>
               <div>

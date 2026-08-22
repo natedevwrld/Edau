@@ -86,7 +86,7 @@ export default function PrivacyPage() {
           </p>
           <div className="bg-gray-50 p-4 rounded-lg mt-2">
             <p className="text-gray-700">Email: privacy@edaufarm.com</p>
-            <p className="text-gray-700">Phone: +254 700 000 000</p>
+            <p className="text-gray-700">Phone: +254 727 690 165</p>
           </div>
         </section>
       </div>

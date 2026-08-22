@@ -165,7 +165,7 @@ const BuybackEmail: React.FC<BuybackEmailProps> = ({
                 <tr>
                   <td style={{ backgroundColor: '#f9fafb', padding: '20px 30px', borderTop: '1px solid #e5e7eb' }}>
                     <p style={{ margin: '0', fontSize: '12px', color: '#6b7280', textAlign: 'center' }}>
-                      Need help? Contact us at <a href="mailto:support@updates.loopnet.tech" style={{ color: '#FF6600' }}>support@updates.loopnet.tech</a> or call +254 700 000 000
+                      Need help? Contact us at <a href="mailto:support@updates.loopnet.tech" style={{ color: '#FF6600' }}>support@updates.loopnet.tech</a> or call +254 727 690 165
                     </p>
                     <p style={{ margin: '10px 0 0 0', fontSize: '12px', color: '#9ca3af', textAlign: 'center' }}>
                       © 2026 Edau Farm. All rights reserved.

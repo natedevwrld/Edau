@@ -182,7 +182,7 @@ export function generateHTMLReceipt(order: any, user: any): string {
 
   <div class="footer">
     <p>Thank you for shopping with Edau Farm!</p>
-    <p>For support, contact us at support@updates.loopnet.tech | +254 700 000 000</p>
+    <p>For support, contact us at support@updates.loopnet.tech | +254 727 690 165</p>
     <p style="margin-top: 10px;" class="no-print">
       <button onclick="window.print()" style="background: #f68b1e; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 14px;">Print Receipt</button>
     </p>

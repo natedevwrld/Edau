@@ -14,7 +14,7 @@ test('returns a service unavailable response when the database is unavailable', 
     body: JSON.stringify({
       name: 'Test User',
       email: 'test@example.com',
-      phone: '+254700000000',
+      phone: '+254727690165',
       password: 'secret123',
     }),
   });

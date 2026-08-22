@@ -117,7 +117,7 @@ export async function generateOrderReceipt(order: any, user: any): Promise<Buffe
         { align: 'center' }
       );
       doc.text(
-        'For support, contact us at support@updates.loopnet.tech | +254 700 000 000',
+        'For support, contact us at support@updates.loopnet.tech | +254 727 690 165',
         50,
         760,
         { align: 'center' }

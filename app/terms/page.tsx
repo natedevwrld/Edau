@@ -99,7 +99,7 @@ export default function TermsPage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-3">10. Contact Information</h2>
           <div className="bg-gray-50 p-4 rounded-lg">
             <p className="text-gray-700">Email: legal@edaufarm.com</p>
-            <p className="text-gray-700">Phone: +254 700 000 000</p>
+            <p className="text-gray-700">Phone: +254 727 690 165</p>
             <p className="text-gray-700">Address: Nairobi, Kenya</p>
           </div>
         </section>
