@@ -4,7 +4,7 @@ import { useState, ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { LayoutDashboard, Package, Users, ShoppingCart, ChartBar as BarChart3, Settings, Menu, X, LogOut, Hop as Home, Store, Bell, Search, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Package, Users, ShoppingCart, ChartBar as BarChart3, Settings, Menu, X, LogOut, Hop as Home, Store, ChevronRight, ChevronLeft } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 
 interface DashboardLayoutProps {
@@ -54,6 +54,7 @@ const navItems: NavItem[] = [
 
 export default function DashboardLayout({ children, role }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const pathname = usePathname();
   const { data: session } = useSession();
 
@@ -102,18 +103,18 @@ export default function DashboardLayout({ children, role }: DashboardLayoutProps
           fixed top-0 left-0 h-screen bg-white border-r border-gray-200 z-50 transition-all duration-300 ease-in-out
           ${sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
           lg:translate-x-0 lg:z-auto lg:shadow-none
-          w-72
+          ${sidebarCollapsed ? 'lg:w-20' : 'w-72'}
         `}
       >
         <div className="flex flex-col h-full">
           {/* Sidebar Header */}
           <div className="relative px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-primary-50 to-orange-50">
-            <div className="flex items-center justify-between">
+            <div className={`flex items-center ${sidebarCollapsed ? 'lg:justify-center' : 'justify-between'}`}>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-500/30">
                   <Store className="w-6 h-6 text-white" />
                 </div>
-                <div>
+                <div className={sidebarCollapsed ? 'lg:hidden' : ''}>
                   <h2 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
                     Edau Farm
                   </h2>
@@ -126,16 +127,24 @@ export default function DashboardLayout({ children, role }: DashboardLayoutProps
               >
                 <X className="w-5 h-5 text-gray-600" />
               </button>
+              <button
+                onClick={() => setSidebarCollapsed((collapsed) => !collapsed)}
+                className="hidden lg:block rounded-lg p-2 text-gray-600 transition-colors hover:bg-white/60"
+                aria-label={sidebarCollapsed ? 'Expand admin sidebar' : 'Collapse admin sidebar'}
+                title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              >
+                {sidebarCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+              </button>
             </div>
           </div>
 
           {/* User Info Card */}
-          <div className="px-4 py-4 border-b border-gray-200">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200">
+          <div className={`px-4 py-4 border-b border-gray-200 ${sidebarCollapsed ? 'lg:px-2' : ''}`}>
+            <div className={`flex items-center gap-3 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 ${sidebarCollapsed ? 'lg:justify-center lg:p-2' : 'p-3'}`}>
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-semibold shadow-md">
                 {session?.user?.name?.charAt(0).toUpperCase() || 'U'}
               </div>
-              <div className="flex-1 min-w-0">
+              <div className={`flex-1 min-w-0 ${sidebarCollapsed ? 'lg:hidden' : ''}`}>
                 <p className="text-sm font-semibold text-gray-900 truncate">
                   {session?.user?.name || 'User'}
                 </p>
@@ -148,7 +157,7 @@ export default function DashboardLayout({ children, role }: DashboardLayoutProps
 
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-3">
+            <p className={`text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-3 ${sidebarCollapsed ? 'lg:hidden' : ''}`}>
               Menu
             </p>
             {filteredNavItems.map((item) => {
@@ -169,8 +178,8 @@ export default function DashboardLayout({ children, role }: DashboardLayoutProps
                   `}
                 >
                   <Icon className={`w-5 h-5 transition-transform ${isActive ? '' : 'group-hover:scale-110'}`} />
-                  <span className="font-medium flex-1">{item.label}</span>
-                  {isActive && <ChevronRight className="w-4 h-4" />}
+                    <span className={`font-medium flex-1 ${sidebarCollapsed ? 'lg:hidden' : ''}`}>{item.label}</span>
+                  {isActive && <ChevronRight className={`w-4 h-4 ${sidebarCollapsed ? 'lg:hidden' : ''}`} />}
                 </Link>
               );
             })}
@@ -198,7 +207,7 @@ export default function DashboardLayout({ children, role }: DashboardLayoutProps
       </aside>
 
       {/* Main Content */}
-      <div className="lg:ml-72 min-h-screen">
+      <div className={`min-h-screen transition-[margin] duration-300 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-72'}`}>
         <div className="pt-16 lg:pt-0">
           {children}
         </div>

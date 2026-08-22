@@ -32,6 +32,8 @@ import {
   FiZap,
   FiImage,
   FiMapPin,
+  FiChevronLeft,
+  FiChevronRight,
 } from 'react-icons/fi';
 import { isAdmin } from '@/lib/roleCheck';
 import { formatPrice } from '@/lib/utils';
@@ -82,6 +84,7 @@ export default function AdminDashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -378,18 +381,20 @@ export default function AdminDashboard() {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed lg:static top-0 left-0 h-screen bg-white border-r border-primary-100 shadow-2xl transition-transform duration-300 z-50 w-72 flex flex-col ${
+      <aside className={`fixed lg:static top-0 left-0 h-screen bg-white border-r border-primary-100 shadow-2xl transition-all duration-300 z-50 flex flex-col ${
+        sidebarCollapsed ? 'lg:w-20' : 'w-72'
+      } ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       }`}>
 
         {/* Sidebar Header */}
-        <div className="p-6 border-b border-primary-100">
-          <div className="flex items-center justify-between">
+          <div className={`p-6 border-b border-primary-100 ${sidebarCollapsed ? 'lg:p-3' : ''}`}>
+          <div className={`flex items-center ${sidebarCollapsed ? 'lg:justify-center' : 'justify-between'}`}>
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-r from-primary-600 to-primary-700 rounded-xl flex items-center justify-center">
                 <FiShield className="w-6 h-6 text-white" />
               </div>
-              <div>
+              <div className={sidebarCollapsed ? 'lg:hidden' : ''}>
                 <h2 className="text-xl font-bold text-primary-800">Admin Panel</h2>
                 <p className="text-sm text-primary-600">Edau Farm</p>
               </div>
@@ -400,11 +405,19 @@ export default function AdminDashboard() {
             >
               <FiX className="w-5 h-5 text-primary-600" />
             </button>
+            <button
+              onClick={() => setSidebarCollapsed((collapsed) => !collapsed)}
+              className="hidden lg:block rounded-lg p-2 text-primary-600 transition-colors hover:bg-primary-50"
+              aria-label={sidebarCollapsed ? 'Expand admin sidebar' : 'Collapse admin sidebar'}
+              title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {sidebarCollapsed ? <FiChevronRight className="h-5 w-5" /> : <FiChevronLeft className="h-5 w-5" />}
+            </button>
           </div>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4">
+        <nav className={`flex-1 p-4 ${sidebarCollapsed ? 'lg:px-2' : ''}`}>
           <ul className="space-y-2">
             {navigationItems.map((item) => (
               <li key={item.id}>
@@ -415,7 +428,7 @@ export default function AdminDashboard() {
                     onClick={() => setSidebarOpen(false)}
                   >
                     <item.icon className="w-5 h-5" />
-                    <span className="font-medium">{item.label}</span>
+                    <span className={sidebarCollapsed ? 'lg:hidden' : 'font-medium'}>{item.label}</span>
                   </Link>
                 ) : (
                   <button
@@ -430,7 +443,7 @@ export default function AdminDashboard() {
                     }`}
                   >
                     <item.icon className="w-5 h-5" />
-                    <span className="font-medium">{item.label}</span>
+                    <span className={sidebarCollapsed ? 'lg:hidden' : 'font-medium'}>{item.label}</span>
                   </button>
                 )}
               </li>
@@ -439,14 +452,14 @@ export default function AdminDashboard() {
         </nav>
 
         {/* User Info */}
-        <div className="p-4 border-t border-primary-100">
-          <div className="flex items-center space-x-3 p-3 bg-primary-50 rounded-xl">
+        <div className={`p-4 border-t border-primary-100 ${sidebarCollapsed ? 'lg:px-2' : ''}`}>
+          <div className={`flex items-center space-x-3 p-3 bg-primary-50 rounded-xl ${sidebarCollapsed ? 'lg:justify-center lg:p-2' : ''}`}>
             <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-primary-600 rounded-full flex items-center justify-center">
               <span className="text-white font-semibold text-sm">
                 {session?.user?.name?.charAt(0)?.toUpperCase() || 'A'}
               </span>
             </div>
-            <div className="flex-1 min-w-0">
+            <div className={`flex-1 min-w-0 ${sidebarCollapsed ? 'lg:hidden' : ''}`}>
               <p className="text-sm font-medium text-primary-800 truncate">
                 {session?.user?.name || 'Admin'}
               </p>
