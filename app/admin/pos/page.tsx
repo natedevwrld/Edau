@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -19,6 +19,8 @@ export default function AdminPosPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartLine[]>([]);
   const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [customer, setCustomer] = useState({ name: '', email: '', phone: '', address: '', city: '', county: '', paymentMethod: 'cash', paymentReference: '', notes: '' });
@@ -27,15 +29,22 @@ export default function AdminPosPage() {
     if (status === 'unauthenticated') router.push('/auth/signin?callbackUrl=/admin/pos');
     else if (status === 'authenticated' && session?.user?.role !== 'admin') router.push('/dashboard');
     else if (status === 'authenticated') {
-      fetch('/api/products?page=1&limit=100').then(async (response) => {
+      loadProducts();
+    }
+  }, [status, session, router, page, query]);
+
+  const loadProducts = async () => {
+      const params = new URLSearchParams({ page: String(page), limit: '12' });
+      if (query.trim()) params.set('search', query.trim());
+
+      fetch(`/api/products?${params.toString()}`).then(async (response) => {
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || 'Failed to load products.');
         setProducts(result.products || []);
+        setTotalPages(result.pagination?.pages || 1);
       }).catch((error) => toast.error(error.message)).finally(() => setLoading(false));
-    }
-  }, [status, session, router]);
+  };
 
-  const visibleProducts = useMemo(() => products.filter((product) => product.name.toLowerCase().includes(query.toLowerCase())), [products, query]);
   const total = cart.reduce((sum, item) => sum + item.price * item.orderedQuantity, 0);
 
   const addProduct = (product: Product) => {
@@ -77,9 +86,28 @@ export default function AdminPosPage() {
       <div className="mb-6"><h1 className="text-3xl font-bold text-gray-900">Point of Sale</h1><p className="mt-1 text-gray-600">Create an in-person order for a registered or guest customer.</p></div>
       <div className="grid gap-6 xl:grid-cols-[1fr_420px]">
         <section className="rounded-xl bg-white p-6 shadow">
-          <div className="relative mb-5"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search products" className="w-full rounded-lg border border-gray-300 py-3 pl-10 pr-4" /></div>
+          <div className="relative mb-5"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" /><input value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Search products" className="w-full rounded-lg border border-gray-300 py-3 pl-10 pr-4" /></div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {visibleProducts.map((product) => <button type="button" key={product.id} onClick={() => addProduct(product)} className="rounded-lg border border-gray-200 p-4 text-left transition hover:border-primary-500 hover:shadow"><span className="block font-semibold text-gray-900">{product.name}</span><span className="mt-1 block text-sm text-primary-700">{formatPrice(product.price)} / {product.unit_type || 'piece'}</span><span className="mt-1 block text-xs text-gray-500">Stock: {product.quantity}</span></button>)}
+            {products.map((product) => <button type="button" key={product.id} onClick={() => addProduct(product)} className="rounded-lg border border-gray-200 p-4 text-left transition hover:border-primary-500 hover:shadow"><span className="block font-semibold text-gray-900">{product.name}</span><span className="mt-1 block text-sm text-primary-700">{formatPrice(product.price)} / {product.unit_type || 'piece'}</span><span className="mt-1 block text-xs text-gray-500">Stock: {product.quantity}</span></button>)}
+          </div>
+          <div className="mt-6 flex items-center justify-between border-t border-gray-100 pt-4">
+            <button
+              type="button"
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              disabled={page === 1}
+              className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Previous
+            </button>
+            <span className="text-sm text-gray-600">Page {page} of {totalPages}</span>
+            <button
+              type="button"
+              onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+              disabled={page >= totalPages}
+              className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Next
+            </button>
           </div>
         </section>
         <form onSubmit={submitOrder} className="rounded-xl bg-white p-6 shadow">
