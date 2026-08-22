@@ -117,9 +117,9 @@ export default function SponsoredProducts() {
                   <span className="text-orange-600 font-bold text-sm truncate">
                     {formatPrice(product.price)}
                   </span>
-                  {product.compareAtPrice && (
+                  {Number(product.compareAtPrice) > 0 && (
                     <span className="text-gray-400 text-xs line-through truncate">
-                      {formatPrice(product.compareAtPrice)}
+                      {formatPrice(Number(product.compareAtPrice))}
                     </span>
                   )}
                 </div>
@@ -192,9 +192,9 @@ export default function SponsoredProducts() {
                   <span className="text-orange-600 font-bold text-sm truncate">
                     {formatPrice(product.price)}
                   </span>
-                  {product.compareAtPrice && (
+                  {Number(product.compareAtPrice) > 0 && (
                     <span className="text-gray-400 text-xs line-through truncate">
-                      {formatPrice(product.compareAtPrice)}
+                      {formatPrice(Number(product.compareAtPrice))}
                     </span>
                   )}
                 </div>

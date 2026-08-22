@@ -147,9 +147,9 @@ export default function ProductCard({ product }: ProductCardProps) {
                 </span>
               )}
             </div>
-            {product.compare_at_price && product.compare_at_price > product.price && (
+            {Number(product.compare_at_price) > product.price && (
               <span className="text-sm text-neutral-400 line-through ml-2">
-                {formatCurrency(product.compare_at_price)}
+                {formatCurrency(Number(product.compare_at_price))}
               </span>
             )}
           </div>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { FiShoppingCart, FiMinus, FiPlus, FiPackage, FiRotateCcw, FiShield } from 'react-icons/fi';
+import { FiShoppingCart, FiMinus, FiPlus, FiPackage, FiRotateCcw, FiShield, FiShare2 } from 'react-icons/fi';
 import { formatPrice, calculateDiscount } from '@/lib/utils';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { useCartStore } from '@/store/cartStore';
@@ -35,6 +35,7 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
   });
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [shareMessage, setShareMessage] = useState('');
   const addItem = useCartStore((state) => state.addItem);
 
   // Auto-refresh product data every 30 seconds to get latest price/stock
@@ -101,6 +102,36 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
     setTimeout(() => {
       window.location.href = '/checkout';
     }, 500);
+  };
+
+  const handleShare = async () => {
+    const productUrl = window.location.href;
+    const shareData = {
+      title: `${product.title} - Edau Farm`,
+      text: `Check out ${product.title} at Edau Farm.`,
+      url: productUrl,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        setShareMessage('Shared successfully');
+      } else {
+        await navigator.clipboard.writeText(productUrl);
+        setShareMessage('Link copied');
+      }
+    } catch (error: any) {
+      if (error?.name !== 'AbortError') {
+        try {
+          await navigator.clipboard.writeText(productUrl);
+          setShareMessage('Link copied');
+        } catch {
+          setShareMessage('Copy the link from your browser address bar');
+        }
+      }
+    }
+
+    window.setTimeout(() => setShareMessage(''), 2500);
   };
 
   const { currency } = useCurrency();
@@ -195,7 +226,7 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
                   </div>
                 )}
               </div>
-              {product.compareAtPrice && product.compareAtPrice > product.price && (
+              {Number(product.compareAtPrice) > product.price && (
                 <div className="text-base text-gray-400 line-through">
                   {formatPrice(product.compareAtPrice, 'KES', currency.code)}
                 </div>
@@ -251,6 +282,14 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
             >
               <FiShoppingCart size={20} />
               <span>{product.stock === 0 ? 'Out of Stock' : 'Order Now'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleShare}
+              className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 py-3 font-medium text-gray-700 transition-colors hover:border-primary-500 hover:bg-primary-50 hover:text-primary-700"
+            >
+              <FiShare2 size={18} />
+              {shareMessage || 'Share product'}
             </button>
 
             {/* Description */}

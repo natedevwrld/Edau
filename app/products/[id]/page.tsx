@@ -62,6 +62,13 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
       openGraph: {
         title: product.title,
         description: product.description,
+        url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://edaufarm.com'}/products/${params.id}`,
+        images: product.images?.[0] ? [product.images[0]] : [],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: product.title,
+        description: product.description?.substring(0, 200),
         images: product.images?.[0] ? [product.images[0]] : [],
       },
     };

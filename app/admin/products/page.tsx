@@ -379,9 +379,9 @@ export default function AdminProductsPage() {
                     <div className="flex items-center justify-between mb-3">
                       <div>
                         <span className="text-lg font-bold text-gray-900">{formatPrice(product.price)}</span>
-                        {product.compareAtPrice && (
+                        {Number(product.compareAtPrice) > 0 && (
                           <span className="text-sm text-gray-500 line-through ml-2">
-                            {formatPrice(product.compareAtPrice)}
+                            {formatPrice(Number(product.compareAtPrice))}
                           </span>
                         )}
                       </div>

@@ -185,7 +185,7 @@ export default function FlashSales() {
               className="group bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-all hover:scale-105 hover:border-amber-500"
             >
               <div className="relative aspect-square bg-gradient-to-br from-amber-50 to-yellow-50">
-                {product.compare_at_price && (
+                {Number(product.compare_at_price) > 0 && (
                   <div className="absolute top-2 left-2 z-10 bg-red-600 text-white px-2 py-1 rounded-md font-bold text-sm">
                     -{calculateDiscount(product.price, product.compare_at_price)}%
                   </div>
@@ -228,9 +228,9 @@ export default function FlashSales() {
                   <span className="text-sm font-bold text-primary-700">
                     {formatCurrency(product.price)}
                   </span>
-                  {product.compare_at_price && (
+                  {Number(product.compare_at_price) > 0 && (
                     <span className="text-xs text-gray-500 line-through">
-                      {formatCurrency(product.compare_at_price)}
+                      {formatCurrency(Number(product.compare_at_price))}
                     </span>
                   )}
                 </div>
@@ -263,7 +263,7 @@ export default function FlashSales() {
               style={{ width: '140px' }}
             >
               <div className="relative aspect-square bg-gradient-to-br from-amber-50 to-yellow-50">
-                {product.compare_at_price && (
+                {Number(product.compare_at_price) > 0 && (
                   <div className="absolute top-1.5 left-1.5 z-10 bg-red-600 text-white px-1.5 py-0.5 rounded-md font-bold text-xs">
                     -{calculateDiscount(product.price, product.compare_at_price)}%
                   </div>

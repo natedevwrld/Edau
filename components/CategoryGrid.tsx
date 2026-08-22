@@ -159,7 +159,7 @@ export default function CategoryGrid() {
                   <span className="text-sm font-bold text-orange-600">
                     {formatPrice(product.price)}
                   </span>
-                  {product.compareAtPrice && product.compareAtPrice > product.price && (
+                  {Number(product.compareAtPrice) > product.price && (
                     <span className="text-xs text-gray-400 line-through">
                       {formatPrice(product.compareAtPrice)}
                     </span>
