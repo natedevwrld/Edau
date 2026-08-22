@@ -4,6 +4,7 @@ export interface IOrder extends Document {
   id: string;
   order_number: string;
   buyer_id: string;
+  buyer_email: string;
   status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
   payment_status: 'pending' | 'paid' | 'failed' | 'refunded';
   payment_method: string | null;
@@ -26,6 +27,7 @@ const orderSchema = new Schema<IOrder>(
     id: { type: String, required: true, unique: true, index: true },
     order_number: { type: String, required: true, unique: true, index: true },
     buyer_id: { type: String, required: true, index: true },
+    buyer_email: { type: String, required: true, trim: true, lowercase: true, index: true },
     status: { 
       type: String, 
       enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'],
@@ -55,6 +57,7 @@ const orderSchema = new Schema<IOrder>(
 
 // Compound indexes for common queries
 orderSchema.index({ buyer_id: 1, created_at: -1 });
+orderSchema.index({ buyer_email: 1, created_at: -1 });
 orderSchema.index({ status: 1, created_at: -1 });
 orderSchema.index({ payment_status: 1, status: 1 });
 

@@ -316,6 +316,7 @@ Please confirm this order. Thank you!`;
           paymentMethod: 'wallet',
           walletAmount: walletDeduction,
           userId: session?.user?.id || null,
+          buyerEmail: formData.email || session?.user?.email || '',
         };
 
         const res = await axios.post('/api/orders', orderData);
@@ -372,6 +373,7 @@ Please confirm this order. Thank you!`;
               ...(formData.postalCode && { postalCode: formData.postalCode }),
             },
             userId: session?.user?.id || null,
+            buyerEmail: formData.email || session?.user?.email || '',
           },
         });
 
@@ -408,6 +410,7 @@ Please confirm this order. Thank you!`;
           mpesaCode: formData.mpesaCode,
           status: 'pending',
           userId: session?.user?.id || null,
+          buyerEmail: formData.email || session?.user?.email || '',
         };
 
         const res = await axios.post('/api/orders', orderData);

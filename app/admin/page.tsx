@@ -31,6 +31,7 @@ import {
   FiStar,
   FiZap,
   FiImage,
+  FiMapPin,
 } from 'react-icons/fi';
 import { isAdmin } from '@/lib/roleCheck';
 import { formatPrice } from '@/lib/utils';
@@ -330,11 +331,13 @@ export default function AdminDashboard() {
   const navigationItems = [
     { id: 'overview', label: 'Overview', icon: FiHome },
     { id: 'orders', label: 'Orders', icon: FiShoppingBag, href: '/admin/orders' },
+    { id: 'pos', label: 'Point of Sale', icon: FiShoppingBag, href: '/admin/pos' },
     { id: 'products', label: 'Products', icon: FiPackage },
     { id: 'users', label: 'Users', icon: FiUsers },
     { id: 'reviews', label: 'Reviews', icon: FiStar },
     { id: 'aicaptions', label: 'AI Captions', icon: FiZap, href: '/admin/ai-captions' },
     { id: 'gallery', label: 'Gallery', icon: FiImage, href: '/admin/gallery' },
+    { id: 'farmvisits', label: 'Farm Visits', icon: FiMapPin, href: '/admin/farm-visits' },
     { id: 'aiusage', label: 'AI Usage', icon: FiActivity, href: '/admin/ai-usage' },
     { id: 'finance', label: 'Finance', icon: FiCreditCard },
     { id: 'settings', label: 'Settings', icon: FiSettings },

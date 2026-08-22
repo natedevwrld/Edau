@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import toast from 'react-hot-toast';
 
 const visitPackages = [
   {
@@ -40,11 +41,26 @@ export default function FarmVisitsPage() {
     message: '',
   });
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would submit to an API
-    setSubmitted(true);
+    setSubmitting(true);
+    try {
+      const response = await fetch('/api/farm-visits', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Failed to submit booking request.');
+      setSubmitted(true);
+      toast.success('Booking request submitted.');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to submit booking request.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -220,6 +236,7 @@ export default function FarmVisitsPage() {
                 <input
                   type="date"
                   required
+                  min={new Date().toISOString().split('T')[0]}
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-500"
@@ -250,9 +267,10 @@ export default function FarmVisitsPage() {
               <div className="md:col-span-2">
                 <button
                   type="submit"
-                  className="w-full md:w-auto bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
+                  disabled={submitting}
+                  className="w-full md:w-auto bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Submit Booking Request
+                  {submitting ? 'Submitting...' : 'Submit Booking Request'}
                 </button>
               </div>
             </form>

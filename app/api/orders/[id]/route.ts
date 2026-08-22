@@ -27,7 +27,8 @@ export async function GET(
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    if (order.buyer_id !== session.user.id) {
+    const sessionEmail = session.user.email?.toLowerCase();
+    if (order.buyer_id !== session.user.id && order.buyer_email !== sessionEmail) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

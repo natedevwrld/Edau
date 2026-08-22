@@ -5,15 +5,18 @@ import OrderItem from '@/lib/models/OrderItem';
 import CartItem from '@/lib/models/CartItem';
 import { generateId, generateOrderNumber } from '@/lib/utils';
 import { createNotification } from '@/lib/notifications';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
     await dbConnect();
 
-    const authHeader = request.headers.get('authorization');
-    const userId = authHeader?.replace('Bearer ', '');
+    const session = await getServerSession(authOptions);
+    const userId = session?.user?.id;
+    const userEmail = session?.user?.email?.toLowerCase();
 
-    if (!userId) {
+    if (!userId || !userEmail) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -22,8 +25,9 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10');
     const offset = (page - 1) * limit;
 
-    const total = await Order.countDocuments({ buyer_id: userId });
-    const orders = await Order.find({ buyer_id: userId })
+    const ownership = { $or: [{ buyer_id: userId }, { buyer_email: userEmail }] };
+    const total = await Order.countDocuments(ownership);
+    const orders = await Order.find(ownership)
       .sort({ created_at: -1 })
       .skip(offset)
       .limit(limit)
@@ -57,17 +61,23 @@ export async function POST(request: NextRequest) {
   try {
     await dbConnect();
 
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || !session.user.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
-    const { items, shippingAddress, paymentMethod, mpesaCode, mpesaPhone, buyerId, buyerEmail, buyerName } = body;
+    const { items, shippingAddress, paymentMethod, mpesaCode, mpesaPhone, buyerName } = body;
 
     if (!items || items.length === 0 || !shippingAddress || !paymentMethod) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const userId = buyerId;
+    const userId = session.user.id;
+    const normalizedBuyerEmail = session.user.email.trim().toLowerCase();
 
-    if (!userId) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+    if (!userId || !normalizedBuyerEmail) {
+      return NextResponse.json({ error: 'Buyer ID and email are required' }, { status: 400 });
     }
 
     if ((paymentMethod === 'mpesa' || paymentMethod === 'wallet+mpesa') && (!mpesaCode || !/^[A-Z0-9]{10}$/.test(mpesaCode))) {
@@ -92,6 +102,7 @@ export async function POST(request: NextRequest) {
       id: generateId(),
       order_number: orderNumber,
       buyer_id: userId,
+      buyer_email: normalizedBuyerEmail,
       status: 'pending',
       payment_status: 'pending',
       payment_method: paymentMethod,
