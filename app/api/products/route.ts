@@ -29,7 +29,8 @@ export async function GET(request: NextRequest) {
     let query = Product.find({ is_in_stock: true });
 
     if (category && category !== 'null' && category !== 'undefined') {
-      query = query.where('slug').equals(category);
+      const escapedCategory = category.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query = query.where('category').regex(new RegExp(`^${escapedCategory}$`, 'i'));
     }
 
     if (search && search.trim()) {

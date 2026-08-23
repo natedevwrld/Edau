@@ -14,13 +14,24 @@ function ProductsContent() {
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(searchParams.get('category'));
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || searchParams.get('search') || '');
   const [sortBy, setSortBy] = useState('createdAt');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [shuffleProducts, setShuffleProducts] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const normalizeCategory = (cat: string | null) => {
+    if (!cat) return null;
+    return cat
+      .split('-')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(
+    normalizeCategory(searchParams.get('category'))
+  );
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || searchParams.get('search') || '');
 
   useEffect(() => {
     if (searchParams.get('focus') && searchInputRef.current) {
@@ -31,7 +42,7 @@ function ProductsContent() {
   useEffect(() => {
     const category = searchParams.get('category');
     const search = searchParams.get('q') || searchParams.get('search');
-    setSelectedCategory(category);
+    setSelectedCategory(normalizeCategory(category));
     setSearchQuery(search || '');
     setPage(1);
   }, [searchParams]);
@@ -52,7 +63,9 @@ function ProductsContent() {
   const fetchCategories = async () => {
     try {
       const res = await axios.get('/api/products/categories');
-      setCategories(res.data.categories || []);
+      setCategories(
+        (res.data.categories || []).map((c: any) => c?.name || c).filter(Boolean)
+      );
     } catch {
       setCategories([]);
     }
